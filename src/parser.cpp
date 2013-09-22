@@ -25,24 +25,24 @@ ASTNode *ParseParen() {
 }
 
 ASTNode *ParseIdentifier() {
-    std::string IdName = IdentifierStr;
+    std::string identifier_name = IdentifierStr;
 
     getNextToken();
 
     if ( current_token != '(' ) {
-        return new VariableNode(IdName);
+        return new VariableNode(identifier_name);
     }
 
     getNextToken();
-    std::vector<ASTNode*> Args;
+    std::vector<ASTNode*> args;
     if ( current_token != ')' ) {
         while (1) {
-            ASTNode *Arg = ParseExpression();
-            if ( !Arg ) {
+            ASTNode *arg = ParseExpression();
+            if ( !arg ) {
                 return 0;
             }
 
-            Args.push_back(Arg);
+            args.push_back(arg);
 
             if ( current_token == ')') {
                 break;
@@ -57,7 +57,7 @@ ASTNode *ParseIdentifier() {
     }
     getNextToken();
 
-    return new CallNode(IdName, Args);
+    return new CallNode(identifier_name, args);
 }
 
 ASTNode *ParseVar() {

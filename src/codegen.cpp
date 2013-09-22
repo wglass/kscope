@@ -1,10 +1,16 @@
+#include "llvm/Analysis/Passes.h"
 #include "llvm/Analysis/Verifier.h"
 #include "llvm/ExecutionEngine/ExecutionEngine.h"
-#include "llvm/DerivedTypes.h"
-#include "llvm/IRBuilder.h"
-#include "llvm/LLVMContext.h"
-#include "llvm/Module.h"
+#include "llvm/ExecutionEngine/JIT.h"
+#include "llvm/IR/DataLayout.h"
+#include "llvm/IR/DerivedTypes.h"
+#include "llvm/IR/IRBuilder.h"
+#include "llvm/IR/LLVMContext.h"
+#include "llvm/IR/Module.h"
+#include "llvm/IR/Value.h"
 #include "llvm/PassManager.h"
+#include "llvm/Support/TargetSelect.h"
+#include "llvm/Transforms/Scalar.h"
 
 #include <map>
 #include <string>
@@ -19,10 +25,9 @@ using namespace llvm;
 
 Module *module;
 ExecutionEngine *engine;
-
-std::map<std::string, AllocaInst*> named_values;
 FunctionPassManager *func_pass_manager;
 
+std::map<std::string, AllocaInst*> named_values;
 IRBuilder<> Builder(getGlobalContext());
 
 
