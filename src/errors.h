@@ -2,7 +2,7 @@
 #define __ERRORS_H_INCLUDED__
 
 
-#include "ast.h"
+#include "ast/ast.h"
 
 ASTNode *Error(const char *message);
 PrototypeNode *ErrorP(const char *message);

@@ -1,19 +1,8 @@
 #ifndef __AST_H_INCLUDED__
 #define __AST_H_INCLUDED__
 
-#include "llvm/Analysis/Passes.h"
-#include "llvm/Analysis/Verifier.h"
-#include "llvm/ExecutionEngine/ExecutionEngine.h"
-#include "llvm/ExecutionEngine/JIT.h"
-#include "llvm/IR/DataLayout.h"
-#include "llvm/IR/DerivedTypes.h"
-#include "llvm/IR/IRBuilder.h"
-#include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Value.h"
-#include "llvm/PassManager.h"
-#include "llvm/Support/TargetSelect.h"
-#include "llvm/Transforms/Scalar.h"
 
 
 using namespace llvm;

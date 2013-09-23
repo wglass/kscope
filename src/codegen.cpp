@@ -16,7 +16,7 @@
 #include <string>
 #include <vector>
 
-#include "ast.h"
+#include "ast/ast.h"
 #include "lexer.h"
 #include "errors.h"
 #include "codegen.h"

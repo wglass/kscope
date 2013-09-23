@@ -1,7 +1,7 @@
 #ifndef __PARSER_H_INCLUDED__
 #define __PARSER_H_INCLUDED__
 
-#include "ast.h"
+#include "ast/ast.h"
 
 ASTNode *ParseExpression();
 ASTNode *ParseIf();
