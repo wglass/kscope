@@ -18,7 +18,7 @@
 #include <vector>
 
 
-#include "ast/ast.h"
+#include "ast.h"
 #include "lexer.h"
 #include "parser.h"
 #include "codegen.h"

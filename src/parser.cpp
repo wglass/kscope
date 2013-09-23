@@ -1,5 +1,5 @@
 
-#include "ast/ast.h"
+#include "ast.h"
 #include "lexer.h"
 #include "parser.h"
 #include "errors.h"

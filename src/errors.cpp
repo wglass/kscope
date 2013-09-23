@@ -1,5 +1,7 @@
 #include <cstdio>
 
+#include "llvm/IR/Value.h"
+
 #include "errors.h"
 
 ASTNode *Error(const char *message) {
@@ -14,7 +16,7 @@ FunctionNode *ErrorF(const char *message) {
     Error(message);
     return 0;
 }
-Value *ErrorV(const char *message) {
+llvm::Value *ErrorV(const char *message) {
     Error(message);
     return 0;
 }

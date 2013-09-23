@@ -1,7 +1,7 @@
 #include <string>
 #include <vector>
 
-#include "ast.h"
+#include "prototype.h"
 
 
 PrototypeNode::PrototypeNode(const std::string &name,

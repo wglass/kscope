@@ -1,4 +1,7 @@
-#include "ast.h"
+#include <string>
+
+#include "node.h"
+#include "for.h"
 
 
 ForNode::ForNode(const std::string &var_name,
