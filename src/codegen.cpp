@@ -31,17 +31,20 @@ std::map<std::string, AllocaInst*> named_values;
 IRBuilder<> Builder(getGlobalContext());
 
 
-static AllocaInst *CreateEntryBlockAlloca(Function *func, const std::string &var_name) {
+static AllocaInst *
+CreateEntryBlockAlloca(Function *func, const std::string &var_name) {
     IRBuilder<> TmpB(&func->getEntryBlock(), func->getEntryBlock().begin());
 
     return TmpB.CreateAlloca(Type::getDoubleTy(getGlobalContext()), 0, var_name.c_str());
 }
 
-Value *NumberNode::codegen() {
+Value *
+NumberNode::codegen() {
     return ConstantFP::get(getGlobalContext(), APFloat(val));
 }
 
-Value *VariableNode::codegen() {
+Value *
+VariableNode::codegen() {
     Value *val = named_values[name];
     if ( !val ) {
         return ErrorV("Unknown variable name");
@@ -50,7 +53,8 @@ Value *VariableNode::codegen() {
     return Builder.CreateLoad(val, name.c_str());
 }
 
-Value *BinaryNode::codegen() {
+Value *
+BinaryNode::codegen() {
     if ( op == '=' ) {
         VariableNode *lhse = dynamic_cast<VariableNode*>(lhs);
         if ( ! lhse ) {
@@ -93,7 +97,8 @@ Value *BinaryNode::codegen() {
     return Builder.CreateCall(func, operands, "binop");
 }
 
-Value *UnaryNode::codegen() {
+Value *
+UnaryNode::codegen() {
     Value *operand_value = operand->codegen();
     if ( operand_value == 0 ) { return 0; }
 
@@ -105,7 +110,8 @@ Value *UnaryNode::codegen() {
     return Builder.CreateCall(func, operand_value, "unop");
 }
 
-Value *CallNode::codegen() {
+Value *
+CallNode::codegen() {
     Function *callee_func = module->getFunction(callee);
     if ( callee_func == 0 ) {
         return ErrorV("Unknown function referenced");
@@ -124,7 +130,8 @@ Value *CallNode::codegen() {
     return Builder.CreateCall(callee_func, arg_values, "calltmp");
 }
 
-Function *PrototypeNode::codegen() {
+Function *
+PrototypeNode::codegen() {
     std::vector<Type*> Doubles(args.size(),
                                Type::getDoubleTy(getGlobalContext()));
     FunctionType *func_type = FunctionType::get(Type::getDoubleTy(getGlobalContext()),
@@ -158,7 +165,8 @@ Function *PrototypeNode::codegen() {
     return func;
 }
 
-void PrototypeNode::CreateArgumentAllocas(Function *func) {
+void
+PrototypeNode::CreateArgumentAllocas(Function *func) {
     Function::arg_iterator iterator = func->arg_begin();
 
     for (unsigned i = 0, size = args.size(); i != size; ++i, ++iterator) {
@@ -169,7 +177,8 @@ void PrototypeNode::CreateArgumentAllocas(Function *func) {
 
 }
 
-Function *FunctionNode::codegen() {
+Function *
+FunctionNode::codegen() {
     named_values.clear();
 
     Function *func = proto->codegen();
@@ -202,7 +211,8 @@ Function *FunctionNode::codegen() {
     return 0;
 }
 
-Value *VarNode::codegen() {
+Value *
+VarNode::codegen() {
     std::vector<AllocaInst *> old_bindings;
 
     Function *func = Builder.GetInsertBlock()->getParent();
@@ -237,7 +247,8 @@ Value *VarNode::codegen() {
     return body_val;
 }
 
-Value *IfNode::codegen() {
+Value *
+IfNode::codegen() {
     Value *cond_value = condition->codegen();
     if ( cond_value == 0 ) { return 0; }
 
@@ -278,7 +289,8 @@ Value *IfNode::codegen() {
     return node;
 }
 
-Value *ForNode::codegen() {
+Value *
+ForNode::codegen() {
     Function *func = Builder.GetInsertBlock()->getParent();
 
     AllocaInst *alloca = CreateEntryBlockAlloca(func, var_name);

@@ -25,7 +25,8 @@
 
 using namespace llvm;
 
-static void HandleDefinition() {
+static void
+HandleDefinition() {
   if ( FunctionNode *node = ParseDefinition() ) {
       if ( Function *func = node->codegen() ) {
           fprintf(stderr, "Read function definition:");
@@ -36,7 +37,8 @@ static void HandleDefinition() {
   }
 }
 
-static void HandleExtern() {
+static void
+HandleExtern() {
   if ( PrototypeNode *node = ParseExtern() ) {
       if ( Function *func = node->codegen() ) {
           fprintf(stderr, "Read extern:");
@@ -47,7 +49,8 @@ static void HandleExtern() {
   }
 }
 
-static void HandleTopLevelExpression() {
+static void
+HandleTopLevelExpression() {
   if ( FunctionNode *node = ParseTopLevelExpression() ) {
       if ( Function *func = node->codegen() ) {
           void *func_ptr = engine->getPointerToFunction(func);
@@ -61,7 +64,8 @@ static void HandleTopLevelExpression() {
   }
 }
 
-static void MainLoop() {
+static void
+MainLoop() {
     while (1) {
         fprintf(stderr, "ready> ");
         switch (current_token) {
@@ -82,7 +86,8 @@ static void MainLoop() {
     }
 }
 
-int main() {
+int
+main() {
     InitializeNativeTarget();
 
     LLVMContext &context = getGlobalContext();
