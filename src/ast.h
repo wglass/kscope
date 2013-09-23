@@ -23,22 +23,27 @@ using namespace llvm;
 
 class ASTNode {
 public:
-    virtual ~ASTNode() {}
+    virtual ~ASTNode() {};
     virtual Value *codegen() = 0;
 };
 
 class NumberNode : public ASTNode {
+
     double val;
+
 public:
-    NumberNode(double val) : val(val) {}
+
+    NumberNode(double val);
     virtual Value *codegen();
 };
 
 class VariableNode : public ASTNode {
+
     std::string name;
+
 public:
-    VariableNode(const std::string &name) : name(name) {}
-    const std::string &getName() const { return name; }
+    VariableNode(const std::string &name);
+    const std::string getName() const;
 
     virtual Value *codegen();
 };
@@ -46,9 +51,9 @@ public:
 class BinaryNode : public ASTNode {
     char op;
     ASTNode *lhs, *rhs;
+
 public:
-    BinaryNode(char op, ASTNode *lhs, ASTNode *rhs)
-        : op(op), lhs(lhs), rhs(rhs) {}
+    BinaryNode(char op, ASTNode *lhs, ASTNode *rhs);
     virtual Value *codegen();
 };
 
@@ -57,17 +62,16 @@ class UnaryNode : public ASTNode {
     ASTNode *operand;
 
 public:
-    UnaryNode(char opcode, ASTNode *operand)
-        : opcode(opcode), operand(operand) {}
+    UnaryNode(char opcode, ASTNode *operand);
     virtual Value *codegen();
 };
 
 class CallNode : public ASTNode {
     std::string callee;
     std::vector<ASTNode*> args;
+
 public:
-    CallNode(const std::string &callee, std::vector<ASTNode*> &args)
-        : callee(callee), args(args) {}
+    CallNode(const std::string &callee, std::vector<ASTNode*> &args);
     virtual Value *codegen();
 };
 
@@ -78,27 +82,16 @@ class PrototypeNode : public ASTNode {
     unsigned precedence;
 
 public:
-    PrototypeNode(
-                  const std::string &name, const std::vector<std::string> &args,
-                  bool is_operator = false, unsigned precedence = 0
-                  )
-        : name(name), args(args), is_operator(is_operator), precedence(precedence) {}
+    PrototypeNode(const std::string &name,
+                  const std::vector<std::string> &args,
+                  bool is_operator = false,
+                  unsigned precedence = 0);
 
-    bool isUnaryOp() const {
-        return is_operator && args.size() == 1;
-    }
-    bool isBinaryOp() const {
-        return is_operator && args.size() == 2;
-    }
+    bool isUnaryOp() const;
+    bool isBinaryOp() const;
 
-    char getOperatorName() const {
-        assert(isUnaryOp() || isBinaryOp());
-        return name[name.size() - 1];
-    }
-
-    unsigned getBinaryPrecedence() const {
-        return precedence;
-    }
+    char getOperatorName() const;
+    unsigned getBinaryPrecedence() const;
 
     Function *codegen();
     void CreateArgumentAllocas(Function *func);
@@ -107,36 +100,38 @@ public:
 class FunctionNode : public ASTNode {
     PrototypeNode *proto;
     ASTNode *body;
+
 public:
-    FunctionNode(PrototypeNode *proto, ASTNode *body)
-        : proto(proto), body(body) {}
+    FunctionNode(PrototypeNode *proto, ASTNode *body);
     Function *codegen();
 };
 
 class VarNode : public ASTNode {
     std::vector<std::pair<std::string, ASTNode*> > var_names;
     ASTNode *body;
+
 public:
-    VarNode(const std::vector<std::pair<std::string, ASTNode*> > &var_names, ASTNode *body)
-        : var_names(var_names), body(body) {}
+    VarNode(const std::vector<std::pair<std::string, ASTNode*> > &var_names,
+            ASTNode *body);
     virtual Value *codegen();
 };
 
 class IfNode : public ASTNode {
     ASTNode *condition, *then, *_else;
+
 public:
-    IfNode(ASTNode *cond, ASTNode *then, ASTNode *_else)
-        : condition(cond), then(then), _else(_else) {};
+    IfNode(ASTNode *cond, ASTNode *then, ASTNode *_else);
     virtual Value *codegen();
 };
 
 class ForNode: public ASTNode {
     std::string var_name;
     ASTNode *start, *end, *step, *body;
+
 public:
     ForNode(const std::string &var_name,
-            ASTNode *start, ASTNode *end, ASTNode *step, ASTNode *body)
-        : var_name(var_name), start(start), end(end), step(step), body(body) {};
+            ASTNode *start, ASTNode *end, ASTNode *step,
+            ASTNode *body);
     virtual Value *codegen();
 };
 

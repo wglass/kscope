@@ -5,6 +5,7 @@ if( NOT LLVM_FOUND )
 endif()
 
 set(KSCOPE_SOURCES
+        ast.cpp
         lexer.cpp
         parser.cpp
         codegen.cpp
