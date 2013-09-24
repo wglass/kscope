@@ -1,13 +1,6 @@
-set(KSCOPE_SOURCES
-        lexer.cpp
-        parser.cpp
-        codegen.cpp
-        errors.cpp
-        main.cpp
-)
+file(GLOB KSCOPE_SOURCES *.cpp)
 
 add_subdirectory(ast)
-
 
 add_executable(kscope ${KSCOPE_SOURCES})
 
