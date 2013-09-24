@@ -71,7 +71,9 @@ MainLoop(Context *context) {
     while (1) {
         fprintf(stderr, "ready> ");
         switch (current_token) {
-        case tok_eof: return;
+        case tok_eof:
+            context->module()->dump();
+            return;
         case ';':
             getNextToken();
             break;
@@ -86,8 +88,6 @@ MainLoop(Context *context) {
             break;
         }
     }
-
-context->module()->dump();
 }
 
 int main() {
