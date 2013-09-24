@@ -4,6 +4,7 @@
 #include "llvm/IR/Value.h"
 
 #include "node.h"
+#include "context.h"
 
 class UnaryNode : public ASTNode {
   char opcode;
@@ -11,7 +12,7 @@ class UnaryNode : public ASTNode {
 
 public:
   UnaryNode(char opcode, ASTNode *operand);
-  virtual llvm::Value *codegen();
+  virtual llvm::Value *codegen(Context *context);
 };
 
 #endif

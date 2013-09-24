@@ -7,6 +7,7 @@
 #include "llvm/IR/Module.h"
 
 #include "node.h"
+#include "context.h"
 
 class PrototypeNode : public ASTNode {
   std::string name;
@@ -26,8 +27,8 @@ public:
   char getOperatorName() const;
   unsigned getBinaryPrecedence() const;
 
-  llvm::Function *codegen();
-  void CreateArgumentAllocas(llvm::Function *func);
+  llvm::Function *codegen(Context *context);
+  void CreateArgumentAllocas(Context *context, llvm::Function *func);
 };
 
 #endif

@@ -3,10 +3,12 @@
 
 #include "llvm/IR/Value.h"
 
+#include "context.h"
+
 class ASTNode {
 public:
   virtual ~ASTNode() {};
-  virtual llvm::Value *codegen() = 0;
+  virtual llvm::Value *codegen(Context *context) = 0;
 };
 
 #endif

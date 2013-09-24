@@ -6,6 +6,7 @@
 #include "llvm/IR/Value.h"
 
 #include "node.h"
+#include "context.h"
 
 class BinaryNode : public ASTNode {
   char op;
@@ -13,7 +14,7 @@ class BinaryNode : public ASTNode {
 
 public:
   BinaryNode(char op, ASTNode *lhs, ASTNode *rhs);
-  virtual llvm::Value *codegen();
+  virtual llvm::Value *codegen(Context *context);
 };
 
 #endif

@@ -7,6 +7,7 @@
 #include "llvm/IR/Value.h"
 
 #include "node.h"
+#include "context.h"
 
 class CallNode : public ASTNode {
   std::string callee;
@@ -14,7 +15,7 @@ class CallNode : public ASTNode {
 
 public:
   CallNode(const std::string &callee, std::vector<ASTNode*> &args);
-  virtual llvm::Value *codegen();
+  virtual llvm::Value *codegen(Context *context);
 };
 
 #endif

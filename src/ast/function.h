@@ -6,6 +6,7 @@
 
 #include "node.h"
 #include "prototype.h"
+#include "context.h"
 
 class FunctionNode : public ASTNode {
   PrototypeNode *proto;
@@ -13,7 +14,7 @@ class FunctionNode : public ASTNode {
 
 public:
   FunctionNode(PrototypeNode *proto, ASTNode *body);
-  llvm::Function *codegen();
+  llvm::Function *codegen(Context *context);
 };
 
 #endif

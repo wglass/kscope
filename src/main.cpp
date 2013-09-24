@@ -21,14 +21,15 @@
 #include "ast.h"
 #include "lexer.h"
 #include "parser.h"
-#include "codegen.h"
+#include "context.h"
+
 
 using namespace llvm;
 
 static void
-HandleDefinition() {
+HandleDefinition(Context *context) {
   if ( FunctionNode *node = ParseDefinition() ) {
-      if ( Function *func = node->codegen() ) {
+      if ( Function *func = node->codegen(context) ) {
           fprintf(stderr, "Read function definition:");
           func->dump();
       }
@@ -38,9 +39,9 @@ HandleDefinition() {
 }
 
 static void
-HandleExtern() {
+HandleExtern(Context *context) {
   if ( PrototypeNode *node = ParseExtern() ) {
-      if ( Function *func = node->codegen() ) {
+      if ( Function *func = node->codegen(context) ) {
           fprintf(stderr, "Read extern:");
           func->dump();
       }
@@ -50,10 +51,10 @@ HandleExtern() {
 }
 
 static void
-HandleTopLevelExpression() {
+HandleTopLevelExpression(Context *context) {
   if ( FunctionNode *node = ParseTopLevelExpression() ) {
-      if ( Function *func = node->codegen() ) {
-          void *func_ptr = engine->getPointerToFunction(func);
+      if ( Function *func = node->codegen(context) ) {
+void *func_ptr = context->engine()->getPointerToFunction(func);
 
           double (*func_pointer)() = (double (*)())(intptr_t)func_ptr;
 
@@ -65,7 +66,7 @@ HandleTopLevelExpression() {
 }
 
 static void
-MainLoop() {
+MainLoop(Context *context) {
     while (1) {
         fprintf(stderr, "ready> ");
         switch (current_token) {
@@ -74,23 +75,24 @@ MainLoop() {
             getNextToken();
             break;
         case tok_def:
-            HandleDefinition();
+            HandleDefinition(context);
             break;
         case tok_extern:
-            HandleExtern();
+            HandleExtern(context);
             break;
         default:
-            HandleTopLevelExpression();
+            HandleTopLevelExpression(context);
             break;
         }
     }
+
+context->module()->dump();
 }
 
-int
-main() {
-    InitializeNativeTarget();
+int main() {
+InitializeNativeTarget();
 
-    LLVMContext &context = getGlobalContext();
+Context *context = new Context();
 
     op_precedence['='] = 2;
     op_precedence['<'] = 10;
@@ -101,38 +103,7 @@ main() {
     fprintf(stderr, "ready> ");
     getNextToken();
 
-    module = new Module("my cool jit", context);
-
-    std::string error_string;
-    engine = EngineBuilder(module).setErrorStr(&error_string).create();
-    if ( ! engine ) {
-        fprintf(
-                stderr,
-                "Could not create execution engine: %s\n",
-                error_string.c_str()
-                );
-        exit(1);
-    }
-
-    FunctionPassManager pass_manager(module);
-
-    pass_manager.add(new DataLayout(*engine->getDataLayout()));
-    pass_manager.add(createBasicAliasAnalysisPass());
-    pass_manager.add(createPromoteMemoryToRegisterPass());
-    pass_manager.add(createInstructionCombiningPass());
-    pass_manager.add(createReassociatePass());
-    pass_manager.add(createGVNPass());
-    pass_manager.add(createCFGSimplificationPass());
-
-    pass_manager.doInitialization();
-
-    func_pass_manager = &pass_manager;
-
-    MainLoop();
-
-    func_pass_manager = 0;
-
-    module->dump();
+    MainLoop(context);
 
     return 0;
 }

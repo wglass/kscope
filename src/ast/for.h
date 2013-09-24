@@ -6,6 +6,7 @@
 #include "llvm/IR/Value.h"
 
 #include "node.h"
+#include "context.h"
 
 class ForNode: public ASTNode {
   std::string var_name;
@@ -15,7 +16,7 @@ public:
   ForNode(const std::string &var_name,
           ASTNode *start, ASTNode *end, ASTNode *step,
           ASTNode *body);
-  virtual llvm::Value *codegen();
+  virtual llvm::Value *codegen(Context *context);
 };
 
 #endif

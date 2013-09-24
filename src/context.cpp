@@ -16,12 +16,16 @@
 
 using namespace llvm;
 
-Context::Context() {
-    initialize(new Module("my cool jit", getGlobalContext()));
+Context::Context()
+    : module_(new Module("my cool jit", getGlobalContext())),
+      builder_(new IRBuilder<>(module_->getContext())) {
+    initialize();
 }
 
-Context::Context(const Context &other) {
-    initialize(CloneModule(other.module()));
+Context::Context(const Context &other)
+    : module_(CloneModule(other.readonly_module())),
+      builder_(new IRBuilder<>(module_->getContext())) {
+    initialize();
 }
 
 Context
@@ -35,7 +39,10 @@ Context
     delete engine_;
     delete module_;
 
-    initialize(CloneModule(other.module()));
+    module_ = CloneModule(other.readonly_module());
+    builder_ = new IRBuilder<>(module_->getContext());
+
+    initialize();
 
     return *this;
 }
@@ -48,11 +55,9 @@ Context::~Context() {
 }
 
 void
-Context::initialize(Module *module) {
-    module_ = module;
-
+Context::initialize() {
     std::string engine_error;
-    engine_ = EngineBuilder(module).setErrorStr(&engine_error).create();
+    engine_ = EngineBuilder(module_).setErrorStr(&engine_error).create();
 
     if ( ! engine_ ) {
         fprintf(stderr,
@@ -61,36 +66,36 @@ Context::initialize(Module *module) {
         exit(1);
     }
 
-    IRBuilder<> ir_builder = IRBuilder<>(module->getContext());
+    pass_manager_ = new FunctionPassManager(module_);
 
-    builder_ = &ir_builder;
+    pass_manager_->add(new DataLayout(*engine_->getDataLayout()));
+    pass_manager_->add(createBasicAliasAnalysisPass());
+    pass_manager_->add(createPromoteMemoryToRegisterPass());
+    pass_manager_->add(createInstructionCombiningPass());
+    pass_manager_->add(createReassociatePass());
+    pass_manager_->add(createGVNPass());
+    pass_manager_->add(createCFGSimplificationPass());
 
-    FunctionPassManager manager = FunctionPassManager(module);
-
-    manager.add(new DataLayout(*engine_->getDataLayout()));
-    manager.add(createBasicAliasAnalysisPass());
-    manager.add(createPromoteMemoryToRegisterPass());
-    manager.add(createInstructionCombiningPass());
-    manager.add(createReassociatePass());
-    manager.add(createGVNPass());
-    manager.add(createCFGSimplificationPass());
-
-    manager.doInitialization();
-
-    pass_manager_ = &manager;
+    pass_manager_->doInitialization();
 }
 
+llvm::Module *
+Context::module() { return module_; }
+
 const llvm::Module *
-Context::module() const { return module_; }
+Context::readonly_module() const { return module_; }
 
-const llvm::ExecutionEngine *
-Context::engine() const { return engine_; }
+llvm::ExecutionEngine *
+Context::engine() { return engine_; }
 
-const llvm::FunctionPassManager *
-Context::pass_manager() const { return pass_manager_; }
+llvm::FunctionPassManager *
+Context::pass_manager() { return pass_manager_; }
 
-const llvm::IRBuilder<> *
-Context::builder() const { return builder_; }
+llvm::IRBuilder<> *
+Context::builder() { return builder_; }
+
+llvm::LLVMContext &
+Context::llvm_context() { return module_->getContext(); }
 
 llvm::AllocaInst *
 Context::get_named_value (const std::string &name){
