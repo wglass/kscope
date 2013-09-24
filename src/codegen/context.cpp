@@ -2,6 +2,7 @@
 #include "llvm/ExecutionEngine/ExecutionEngine.h"
 #include "llvm/IR/DataLayout.h"
 #include "llvm/IR/DerivedTypes.h"
+#include "llvm/IR/Instructions.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Module.h"
@@ -115,4 +116,14 @@ Context::clear_named_value(const std::string &name) {
 void
 Context::clear_all_named_values() {
     named_values.clear();
+}
+
+AllocaInst *
+Context::create_entry_block_alloca(Function *func, const std::string &name) {
+    IRBuilder<> tmp_builder(&func->getEntryBlock(),
+                            func->getEntryBlock().begin());
+
+    return tmp_builder.CreateAlloca(Type::getDoubleTy(module_->getContext()),
+                                    0,
+                                    name.c_str());
 }

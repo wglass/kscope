@@ -18,10 +18,11 @@
 #include <vector>
 
 
-#include "ast.h"
+#include "ast/function.h"
+#include "ast/prototype.h"
 #include "lexer.h"
 #include "parser.h"
-#include "context.h"
+#include "codegen/context.h"
 
 
 using namespace llvm;

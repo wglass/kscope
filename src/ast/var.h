@@ -7,7 +7,8 @@
 #include "llvm/IR/Value.h"
 
 #include "node.h"
-#include "context.h"
+#include "codegen/context.h"
+
 
 class VarNode : public ASTNode {
   std::vector<std::pair<std::string, ASTNode*> > var_names;

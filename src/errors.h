@@ -3,7 +3,10 @@
 
 #include "llvm/IR/Value.h"
 
-#include "ast.h"
+#include "ast/node.h"
+#include "ast/prototype.h"
+#include "ast/function.h"
+
 
 ASTNode *Error(const char *message);
 PrototypeNode *ErrorP(const char *message);

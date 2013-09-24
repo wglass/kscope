@@ -6,7 +6,8 @@
 #include "llvm/IR/Value.h"
 
 #include "node.h"
-#include "context.h"
+#include "codegen/context.h"
+
 
 class BinaryNode : public ASTNode {
   char op;

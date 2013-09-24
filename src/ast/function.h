@@ -6,7 +6,8 @@
 
 #include "node.h"
 #include "prototype.h"
-#include "context.h"
+#include "codegen/context.h"
+
 
 class FunctionNode : public ASTNode {
   PrototypeNode *proto;
