@@ -1,5 +1,4 @@
-#ifndef __CALL_H_INCLUDED__
-#define __CALL_H_INCLUDED__
+#pragma once
 
 #include <string>
 #include <vector>
@@ -18,5 +17,3 @@ public:
   CallNode(const std::string &callee, std::vector<ASTNode*> &args);
   virtual llvm::Value *codegen(Context *context);
 };
-
-#endif

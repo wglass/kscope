@@ -1,5 +1,4 @@
-#ifndef __FUNCTION_H_INCLUDED__
-#define __FUNCTION_H_INCLUDED__
+#pragma once
 
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Value.h"
@@ -17,5 +16,3 @@ public:
   FunctionNode(PrototypeNode *proto, ASTNode *body);
   llvm::Function *codegen(Context *context);
 };
-
-#endif

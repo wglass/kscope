@@ -1,10 +1,8 @@
-#ifndef __LEXER_H_INCLUDED__
-#define __LEXER_H_INCLUDED__
-
-
+#pragma once
 
 #include <string>
 #include <map>
+
 
 enum Token {
     tok_eof = -1,
@@ -16,7 +14,6 @@ enum Token {
     tok_var = -13
 };
 
-
 extern int current_token;
 extern std::string IdentifierStr;
 extern double NumVal;
@@ -24,5 +21,3 @@ extern std::map<char, int> op_precedence;
 
 extern int getNextToken();
 extern int getTokPrecedence();
-
-#endif

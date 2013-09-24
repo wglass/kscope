@@ -1,5 +1,4 @@
-#ifndef __VARIABLE_H_INCLUDED__
-#define __VARIABLE_H_INCLUDED__
+#pragma once
 
 #include <string>
 
@@ -17,6 +16,3 @@ public:
   const std::string getName() const;
   virtual llvm::Value *codegen(Context *context);
 };
-
-
-#endif

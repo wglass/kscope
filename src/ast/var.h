@@ -1,5 +1,4 @@
-#ifndef __VAR_H_INCLUDED__
-#define __VAR_H_INCLUDED__
+#pragma once
 
 #include <string>
 #include <vector>
@@ -19,5 +18,3 @@ public:
           ASTNode *body);
   virtual llvm::Value *codegen(Context *context);
 };
-
-#endif

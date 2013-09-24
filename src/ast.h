@@ -1,5 +1,4 @@
-#ifndef __AST_H_INCLUDED__
-#define __AST_H_INCLUDED__
+#pragma once
 
 #include "ast/node.h"
 #include "ast/number.h"
@@ -12,5 +11,3 @@
 #include "ast/function.h"
 #include "ast/if.h"
 #include "ast/for.h"
-
-#endif

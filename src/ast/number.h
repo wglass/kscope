@@ -1,5 +1,4 @@
-#ifndef __NUMBER_H_INCLUDED__
-#define __NUMBER_H_INCLUDED__
+#pragma once
 
 #include "llvm/IR/Value.h"
 
@@ -13,6 +12,3 @@ public:
   NumberNode(double val);
   virtual llvm::Value *codegen(Context *context);
 };
-
-
-#endif

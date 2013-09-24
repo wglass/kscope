@@ -1,5 +1,4 @@
-#ifndef __PROTOTYPE_H_INCLUDED__
-#define __PROTOTYPE_H_INCLUDED__
+#pragma once
 
 #include <string>
 #include <vector>
@@ -31,5 +30,3 @@ public:
   llvm::Function *codegen(Context *context);
   void create_argument_allocas(Context *context, llvm::Function *func);
 };
-
-#endif

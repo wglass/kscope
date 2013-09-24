@@ -1,5 +1,4 @@
-#ifndef __NODE_H_INCLUDED__
-#define __NODE_H_INCLUDED__
+#pragma once
 
 #include "llvm/IR/Value.h"
 
@@ -10,5 +9,3 @@ public:
   virtual ~ASTNode() {};
   virtual llvm::Value *codegen(Context *context) = 0;
 };
-
-#endif

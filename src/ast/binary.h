@@ -1,5 +1,4 @@
-#ifndef __BINARY_H_INCLUDED__
-#define __BINARY_H_INCLUDED__
+#pragma once
 
 #include <string>
 
@@ -17,5 +16,3 @@ public:
   BinaryNode(char op, ASTNode *lhs, ASTNode *rhs);
   virtual llvm::Value *codegen(Context *context);
 };
-
-#endif

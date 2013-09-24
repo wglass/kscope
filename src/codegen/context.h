@@ -1,5 +1,4 @@
-#ifndef __CONTEXT_H_INCLUDED__
-#define __CONTEXT_H_INCLUDED__
+#pragma once
 
 #include "llvm/ExecutionEngine/ExecutionEngine.h"
 #include "llvm/IR/Function.h"
@@ -52,5 +51,3 @@ public:
 
     AllocaInst *create_entry_block_alloca(Function *func, const std::string &name);
 };
-
-#endif

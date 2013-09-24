@@ -1,5 +1,4 @@
-#ifndef __PARSER_H_INCLUDED__
-#define __PARSER_H_INCLUDED__
+#pragma once
 
 #include "ast/node.h"
 #include "ast/prototype.h"
@@ -20,5 +19,3 @@ PrototypeNode *ParsePrototype();
 FunctionNode *ParseDefinition();
 PrototypeNode *ParseExtern();
 FunctionNode *ParseTopLevelExpression();
-
-#endif

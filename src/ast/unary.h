@@ -1,5 +1,4 @@
-#ifndef __UNARY_H_INCLUDED__
-#define __UNARY_H_INCLUDED__
+#pragma once
 
 #include "llvm/IR/Value.h"
 
@@ -15,5 +14,3 @@ public:
   UnaryNode(char opcode, ASTNode *operand);
   virtual llvm::Value *codegen(Context *context);
 };
-
-#endif

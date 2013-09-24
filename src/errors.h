@@ -1,5 +1,4 @@
-#ifndef __ERRORS_H_INCLUDED__
-#define __ERRORS_H_INCLUDED__
+#pragma once
 
 #include "llvm/IR/Value.h"
 
@@ -12,6 +11,3 @@ ASTNode *Error(const char *message);
 PrototypeNode *ErrorP(const char *message);
 FunctionNode *ErrorF(const char *message);
 llvm::Value *ErrorV(const char *message);
-
-
-#endif
