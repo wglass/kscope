@@ -4,12 +4,49 @@
 
 #include "lexer.h"
 
-int current_token;
-std::string IdentifierStr;
-double NumVal;
-std::map<char, int> op_precedence;
 
-static int gettok() {
+Lexer::Lexer() {
+    op_precedence_['='] = 2;
+    op_precedence_['<'] = 10;
+    op_precedence_['>'] = 10;
+    op_precedence_['+'] = 20;
+    op_precedence_['-'] = 20;
+    op_precedence_['*'] = 240;
+
+    keyword_map_["def"] = Token::DEF;
+    keyword_map_["extern"] = Token::EXTERN;
+    keyword_map_["var"] = Token::VAR;
+    keyword_map_["if"] = Token::IF;
+    keyword_map_["then"] = Token::THEN;
+    keyword_map_["else"] = Token::ELSE;
+    keyword_map_["for"] = Token::FOR;
+    keyword_map_["in"] = Token::IN;
+}
+
+Lexer::Lexer(const Lexer &other)
+    : current_token_(other.current_token()),
+      identifier_(other.identifier()),
+      number_value_(other.number_value()) {
+
+    op_precedence_['='] = 2;
+    op_precedence_['<'] = 10;
+    op_precedence_['>'] = 10;
+    op_precedence_['+'] = 20;
+    op_precedence_['-'] = 20;
+    op_precedence_['*'] = 240;
+
+    keyword_map_["def"] = Token::DEF;
+    keyword_map_["extern"] = Token::EXTERN;
+    keyword_map_["var"] = Token::VAR;
+    keyword_map_["if"] = Token::IF;
+    keyword_map_["then"] = Token::THEN;
+    keyword_map_["else"] = Token::ELSE;
+    keyword_map_["for"] = Token::FOR;
+    keyword_map_["in"] = Token::IN;
+}
+
+void
+Lexer::next() {
     static int last_char = ' ';
 
     while ( isspace(last_char) ) {
@@ -17,43 +54,18 @@ static int gettok() {
     }
 
     if ( isalpha(last_char) ) {
-        IdentifierStr = last_char;
+        identifier_ = last_char;
         while ( isalnum((last_char = getchar())) ) {
-            IdentifierStr += last_char;
+            identifier_ += last_char;
         }
 
-        if ( IdentifierStr == "def" ) {
-            return tok_def;
+        if ( keyword_map_.count(identifier_) == 0 ) {
+            current_token_ = Token::IDENTIFIER;
+            return;
+        } else {
+            current_token_ = keyword_map_[identifier_];
+            return;
         }
-        if ( IdentifierStr == "extern" ) {
-            return tok_extern;
-        }
-        if ( IdentifierStr == "if" ) {
-            return tok_if;
-        }
-        if ( IdentifierStr == "then" ) {
-            return tok_then;
-        }
-        if ( IdentifierStr == "else" ) {
-            return tok_else;
-        }
-        if ( IdentifierStr == "for" ) {
-            return tok_for;
-        }
-        if ( IdentifierStr == "in" ) {
-            return tok_in;
-        }
-        if ( IdentifierStr == "binary" ) {
-            return tok_binary;
-        }
-        if ( IdentifierStr == "unary" ) {
-            return tok_unary;
-        }
-        if ( IdentifierStr == "var" ) {
-            return tok_var;
-        }
-
-        return tok_identifier;
     }
 
     if ( isdigit(last_char) || last_char == '.' ) {
@@ -64,8 +76,10 @@ static int gettok() {
             last_char = getchar();
         } while ( isdigit(last_char) || last_char == '.' );
 
-        NumVal = strtod(number_string.c_str(), 0);
-        return tok_number;
+        number_value_ = strtod(number_string.c_str(), 0);
+
+        current_token_ = Token::NUMBER;
+        return;
     }
 
     if ( last_char == '#' ) {
@@ -74,32 +88,49 @@ static int gettok() {
         } while ( last_char != EOF && last_char != '\n' && last_char != '\r' );
 
         if ( last_char != EOF ) {
-            return gettok();
+            next();
+            return;
         }
     }
 
     if ( last_char == EOF ) {
-        return tok_eof;
+        current_token_ = Token::_EOF;
+        return;
     }
 
-    int this_char = last_char;
+    current_token_ = last_char;
     last_char = getchar();
-
-    return this_char;
 }
 
-int getNextToken() {
-    return current_token = gettok();
-}
+const int
+Lexer::current_token() const { return current_token_; }
 
-int getTokPrecedence() {
-    if ( !isascii(current_token) ) {
+const std::string
+Lexer::identifier() const { return identifier_; }
+
+const double
+Lexer::number_value() const { return number_value_; }
+
+int
+Lexer::token_precedence() {
+    if ( !isascii(current_token_) ) {
         return -1;
     }
 
-    int tokPrec = op_precedence[current_token];
-    if ( tokPrec <= 0 ) {
+    int precedence = op_precedence_[current_token_];
+    if ( precedence <= 0 ) {
         return -1;
     }
-    return tokPrec;
+
+    return precedence;
+}
+
+void
+Lexer::add_op_precedence(const char &op, const int precedence) {
+    op_precedence_[op] = precedence;
+}
+
+const std::map<char, int>
+Lexer::op_precedence() const {
+    return op_precedence_;
 }

@@ -5,7 +5,6 @@
 
 #include "ast/function.h"
 #include "context.h"
-#include "lexer.h"
 
 using ::llvm::BasicBlock;
 using ::llvm::Function;
@@ -18,10 +17,6 @@ FunctionNode::codegen(Context *context) {
 
     Function *func = proto->codegen(context);
     if ( func == 0 ) { return 0; }
-
-    if ( proto->isBinaryOp() ) {
-        op_precedence[proto->getOperatorName()] = proto->getBinaryPrecedence();
-    }
 
     BasicBlock *block = BasicBlock::Create(context->llvm_context(),
                                            "entry",
@@ -40,10 +35,6 @@ FunctionNode::codegen(Context *context) {
     }
 
     func->eraseFromParent();
-
-    if ( proto->isBinaryOp() ) {
-        op_precedence.erase(proto->getOperatorName());
-    }
 
     return 0;
 }

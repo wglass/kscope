@@ -4,18 +4,34 @@
 #include "ast/prototype.h"
 #include "ast/function.h"
 
+#include "lexer.h"
 
-ASTNode *ParseExpression();
-ASTNode *ParseIf();
-ASTNode *ParseFor();
-ASTNode *ParseUnary();
-ASTNode *ParseNumber();
-ASTNode *ParseParen();
-ASTNode *ParseIdentifier();
-ASTNode *ParseVar();
-ASTNode *ParsePrimary();
-ASTNode *ParseBinOpRHS();
-PrototypeNode *ParsePrototype();
-FunctionNode *ParseDefinition();
-PrototypeNode *ParseExtern();
-FunctionNode *ParseTopLevelExpression();
+
+class Parser {
+    Lexer *lexer_;
+
+    Parser(const Parser &other);
+    Parser &operator =(const Parser &other);
+
+    ASTNode *parse_expression();
+    ASTNode *parse_if();
+    ASTNode *parse_for();
+    ASTNode *parse_unary();
+    ASTNode *parse_number();
+    ASTNode *parse_paren();
+    ASTNode *parse_identifier();
+    ASTNode *parse_var();
+    ASTNode *parse_primary();
+    ASTNode *parse_binary_op_rhs(int precedence, ASTNode *lhs);
+    PrototypeNode *parse_prototype();
+
+public:
+    Parser();
+    ~Parser();
+
+    Lexer *lexer();
+
+    PrototypeNode *parse_extern();
+    FunctionNode *parse_definition();
+    FunctionNode *parse_top_level_expression();
+};

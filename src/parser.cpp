@@ -1,322 +1,342 @@
-
 #include "ast.h"
 #include "lexer.h"
 #include "parser.h"
 #include "errors.h"
 
-ASTNode *ParseNumber() {
-    ASTNode *Result = new NumberNode(NumVal);
-    getNextToken();
-    return Result;
+#include <cstdio>
+
+
+Parser::Parser()
+    : lexer_(new Lexer()) {}
+
+Parser::Parser(const Parser &other)
+    : lexer_(new Lexer()) {}
+
+
+Parser &
+Parser::operator =(const Parser &other) {
+    if ( this == &other ) { return *this; }
+
+    delete lexer_;
+
+    lexer_ = new Lexer();
+
+    return *this;
 }
 
-ASTNode *ParseParen() {
-    getNextToken();
-    ASTNode *V = ParseExpression();
-    if ( !V ) {
+Parser::~Parser() {
+    delete lexer_;
+}
+
+Lexer *
+Parser::lexer() { return lexer_; }
+
+ASTNode *
+Parser::parse_number() {
+    ASTNode *result = new NumberNode(lexer_->number_value());
+    lexer_->next();
+    return result;
+}
+
+ASTNode *
+Parser::parse_paren() {
+    lexer_->next();
+
+    ASTNode *value = parse_expression();
+    if ( !value ) {
         return 0;
     }
-
-    if ( current_token != ')' ) {
+    if ( lexer_->current_token() != ')' ) {
         return Error("expected ')'");
     }
-    getNextToken();
-    return V;
+
+    lexer_->next();
+    return value;
 }
 
-ASTNode *ParseIdentifier() {
-    std::string identifier_name = IdentifierStr;
+ASTNode *
+Parser::parse_identifier() {
+    std::string identifier_name = lexer_->identifier();
 
-    getNextToken();
+    lexer_->next();
 
-    if ( current_token != '(' ) {
+    if ( lexer_->current_token() != '(' ) {
         return new VariableNode(identifier_name);
     }
 
-    getNextToken();
+    lexer_->next();
+
     std::vector<ASTNode*> args;
-    if ( current_token != ')' ) {
+    if ( lexer_->current_token() != ')' ) {
         while (1) {
-            ASTNode *arg = ParseExpression();
+            ASTNode *arg = parse_expression();
             if ( !arg ) {
                 return 0;
             }
 
             args.push_back(arg);
 
-            if ( current_token == ')') {
+            if ( lexer_->current_token() == ')' ) {
                 break;
             }
 
-            if ( current_token != ',' ) {
+            if ( lexer_->current_token() != ',' ) {
                 return Error("expected ')' or ',' in argument list");
             }
 
-            getNextToken();
+            lexer_->next();
         }
     }
-    getNextToken();
+
+    lexer_->next();
 
     return new CallNode(identifier_name, args);
 }
 
-ASTNode *ParseVar() {
-    getNextToken();
+ASTNode *
+Parser::parse_var() {
+    lexer_->next();
 
     std::vector<std::pair<std::string, ASTNode*> > var_names;
 
-    if ( current_token != tok_identifier ) {
+    if ( lexer_->current_token() != Token::IDENTIFIER ) {
         return Error("Expected identifier after var");
     }
 
     while (1) {
-        std::string name = IdentifierStr;
-        getNextToken();
+        std::string name = lexer_->identifier();
+        lexer_->next();
 
         ASTNode *init = 0;
-        if ( current_token == '=' ) {
-            getNextToken();
-            init = ParseExpression();
+        if ( lexer_->current_token() == '=' ) {
+            lexer_->next();
+            init = parse_expression();
             if ( init == 0 ) { return 0; }
         }
 
         var_names.push_back(std::make_pair(name, init));
 
-        if ( current_token != ',') { break; }
+        if ( lexer_->current_token() != ',') { break; }
 
-        getNextToken();
+        lexer_->next();
 
-        if ( current_token != tok_identifier ) {
+        if ( lexer_->current_token() != Token::IDENTIFIER ) {
             return Error("Expected identifier list after var");
         }
     }
 
-    if ( current_token != tok_in ) {
+    if ( lexer_->current_token() != Token::IN ) {
         return Error("Expected 'in' keyword after 'var'");
     }
-    getNextToken();
+    lexer_->next();
 
-    ASTNode *body = ParseExpression();
+    ASTNode *body = parse_expression();
     if ( body == 0 ) { return 0; }
 
     return new VarNode(var_names, body);
 }
 
-ASTNode *ParsePrimary() {
-    switch( current_token ) {
+ASTNode *
+Parser::parse_primary() {
+    switch( lexer_->current_token() ) {
+    case Token::IDENTIFIER:
+        return parse_identifier();
+    case Token::NUMBER:
+        return parse_number();
+    case '(':
+        return parse_paren();
+    case Token::IF:
+        return parse_if();
+    case Token::FOR:
+        return parse_for();
+    case Token::VAR:
+        return parse_var();
     default:
-        return Error("unknown token when expecting an expression");
-    case tok_identifier: return ParseIdentifier();
-    case tok_number: return ParseNumber();
-    case '(': return ParseParen();
-    case tok_if: return ParseIf();
-    case tok_for: return ParseFor();
-    case tok_var: return ParseVar();
+        fprintf(stderr, "Unknown token '%c' when expecting an expression", (char) lexer_->current_token());
+        return 0;
     }
 }
 
-ASTNode *ParseBinOpRHS(int expression_precedence, ASTNode *LHS) {
+ASTNode *
+Parser::parse_binary_op_rhs(int expression_precedence, ASTNode *LHS) {
     while (1) {
-        int token_precedence = getTokPrecedence();
+        int token_precedence = lexer_->token_precedence();
         if ( token_precedence < expression_precedence ) {
             return LHS;
         }
 
-        int BinOp = current_token;
-        getNextToken();
+        int binary_op = lexer_->current_token();
+        lexer_->next();
 
-        ASTNode *RHS = ParseUnary();
+        ASTNode *RHS = parse_unary();
         if ( !RHS ) { return 0; }
 
-        int next_precedence = getTokPrecedence();
+        int next_precedence = lexer_->token_precedence();
         if ( token_precedence < next_precedence ) {
-            RHS = ParseBinOpRHS(token_precedence + 1, RHS);
+            RHS = parse_binary_op_rhs(token_precedence + 1, RHS);
         }
 
-        LHS = new BinaryNode(BinOp, LHS, RHS);
+        LHS = new BinaryNode(binary_op, LHS, RHS);
     }
 }
 
-ASTNode *ParseUnary() {
-    if ( !isascii(current_token) || current_token == '(' || current_token == ')' ) {
-        return ParsePrimary();
+ASTNode *
+Parser::parse_unary() {
+    if ( !isascii(lexer_->current_token())
+         || lexer_->current_token() == '('
+         || lexer_->current_token() == ')' ) {
+        return parse_primary();
     }
 
-    int opr = current_token;
-    getNextToken();
-    if ( ASTNode *operand = ParseUnary() ) {
-        return new UnaryNode(opr, operand);
+    int unary_op = lexer_->current_token();
+    lexer_->next();
+
+    if ( ASTNode *operand = parse_unary() ) {
+        return new UnaryNode(unary_op, operand);
     }
 
     return 0;
 }
 
-ASTNode *ParseExpression() {
-    ASTNode *LHS = ParseUnary();
+ASTNode *
+Parser::parse_expression() {
+    ASTNode *LHS = parse_unary();
     if ( !LHS ) { return 0; }
 
-    return ParseBinOpRHS(0, LHS);
+    return parse_binary_op_rhs(0, LHS);
 }
 
-PrototypeNode *ParsePrototype() {
+PrototypeNode *
+Parser::parse_prototype() {
     std::string func_name;
 
-    unsigned kind = 0;
-    unsigned binary_precedence = 0;
-
-    switch(current_token) {
-    case tok_identifier:
-        kind = 0;
-        func_name = IdentifierStr;
-        getNextToken();
-        break;
-    case tok_unary:
-        getNextToken();
-        if ( ! isascii(current_token) ) {
-            return ErrorP("Expected unary operator");
-        }
-        kind = 1;
-        func_name = "unary";
-        func_name += (char)current_token;
-        getNextToken();
-        break;
-    case tok_binary:
-        getNextToken();
-        if ( ! isascii(current_token) ) {
-            return ErrorP("Expected binary operator");
-        }
-        kind = 2;
-        func_name = "binary";
-        func_name += (char)current_token;
-        getNextToken();
-        if ( current_token == tok_number ) {
-            if ( NumVal < 1 || NumVal > 100 ) {
-                return ErrorP("Invalid precedence: must be 1..100");
-            }
-            binary_precedence = (unsigned)NumVal;
-            getNextToken();
-        }
-        break;
+    if ( lexer_->current_token() == Token::IDENTIFIER ) {
+        func_name = lexer_->identifier();
+        lexer_->next();
     }
 
-    if ( current_token != '(' ) {
+    if ( lexer_->current_token() != '(' ) {
         return ErrorP("Expected '(' in prototype");
     }
 
     std::vector<std::string> arg_names;
 
-    while ( getNextToken() == tok_identifier ) {
-        arg_names.push_back(IdentifierStr);
+    lexer_->next();
+
+    while ( lexer_->current_token() == Token::IDENTIFIER ) {
+        arg_names.push_back(lexer_->identifier());
+        lexer_->next();
     }
 
-    if ( current_token != ')' ) {
+    if ( lexer_->current_token() != ')' ) {
         return ErrorP("Expected ')' in prototype");
     }
 
-    getNextToken();
+    lexer_->next();
 
-    if ( kind && arg_names.size() != kind ) {
-        return ErrorP("Invalid number of operands for operator");
-    }
-
-    return new PrototypeNode(func_name, arg_names, kind != 0, binary_precedence);
+    return new PrototypeNode(func_name, arg_names);
 }
 
-FunctionNode *ParseDefinition() {
-    getNextToken();
+FunctionNode *
+Parser::parse_definition() {
+    lexer_->next();
 
-    PrototypeNode *Proto = ParsePrototype();
+    PrototypeNode *proto = parse_prototype();
 
-    if ( Proto == 0 ) { return 0; }
+    if ( proto == 0 ) { return 0; }
 
-    if ( ASTNode *E = ParseExpression() ) {
-        return new FunctionNode(Proto, E);
+    if ( ASTNode *expression = parse_expression() ) {
+        return new FunctionNode(proto, expression);
     }
 
     return 0;
 }
 
-PrototypeNode *ParseExtern() {
-    getNextToken();
+PrototypeNode *
+Parser::parse_extern() {
+    lexer_->next();
 
-    return ParsePrototype();
+    return parse_prototype();
 }
 
-FunctionNode *ParseTopLevelExpression() {
-    if ( ASTNode *E = ParseExpression() ) {
-        PrototypeNode *Proto = new PrototypeNode("", std::vector<std::string>());
-        return new FunctionNode(Proto, E);
+FunctionNode *
+Parser::parse_top_level_expression() {
+    if ( ASTNode *expression = parse_expression() ) {
+        PrototypeNode *proto = new PrototypeNode("", std::vector<std::string>());
+        return new FunctionNode(proto, expression);
     }
 
     return 0;
 }
 
-ASTNode *ParseIf() {
-    getNextToken();
+ASTNode *
+Parser::parse_if() {
+    lexer_->next();
 
-    ASTNode *condition = ParseExpression();
+    ASTNode *condition = parse_expression();
     if ( ! condition ) { return 0; }
 
-    if ( current_token != tok_then ) {
+    if ( lexer_->current_token() != Token::THEN ) {
         return Error("expected 'then'");
     }
 
-    getNextToken();
+    lexer_->next();
 
-    ASTNode *then = ParseExpression();
+    ASTNode *then = parse_expression();
     if ( ! then ) { return 0; }
 
-    if ( current_token != tok_else ) {
+    if ( lexer_->current_token() != Token::ELSE ) {
         return Error("expected 'else'");
     }
 
-    getNextToken();
+    lexer_->next();
 
-    ASTNode *_else = ParseExpression();
+    ASTNode *_else = parse_expression();
     if ( ! _else ) { return 0; }
 
     return new IfNode(condition, then, _else);
 }
 
-ASTNode *ParseFor() {
-    getNextToken();
+ASTNode *
+Parser::parse_for() {
+    lexer_->next();
 
-    if ( current_token != tok_identifier ) {
+    if ( lexer_->current_token() != Token::IDENTIFIER ) {
         return Error("expected identifier after 'for'");
     }
 
-    std::string id_name = IdentifierStr;
-    getNextToken();
+    std::string id_name = lexer_->identifier();
+    lexer_->next();
 
-    if ( current_token != '=' ) {
+    if ( lexer_->current_token() != '=' ) {
         return Error("expected '=' after 'for'");
     }
-    getNextToken();
+    lexer_->next();
 
-    ASTNode *start = ParseExpression();
+    ASTNode *start = parse_expression();
     if ( start == 0 ) { return 0; }
 
-    if ( current_token != ',' ) {
+    if ( lexer_->current_token() != ',' ) {
         return Error("Expected ',' after for start value");
     }
-    getNextToken();
+    lexer_->next();
 
-    ASTNode *end = ParseExpression();
+    ASTNode *end = parse_expression();
     if ( end == 0 ) { return 0; }
 
     ASTNode *step = 0;
-    if ( current_token == ',' ) {
-        getNextToken();
-        step = ParseExpression();
+    if ( lexer_->current_token() == ',' ) {
+        lexer_->next();
+        step = parse_expression();
         if ( step == 0 ) { return 0; }
     }
 
-    if ( current_token != tok_in ) {
+    if ( lexer_->current_token() != Token::IN ) {
         return Error("Expected 'in' after 'for'");
     }
-    getNextToken();
+    lexer_->next();
 
-    ASTNode *body = ParseExpression();
+    ASTNode *body = parse_expression();
     if ( body == 0 ) { return 0; }
 
     return new ForNode(id_name, start, end, step, body);

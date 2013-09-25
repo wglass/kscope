@@ -36,6 +36,8 @@ BinaryNode::codegen(Context *context) {
 
     if (left == 0 || right == 0 ) { return 0; }
 
+    Type *llvm_double_type = Type::getDoubleTy(context->llvm_context());
+
     switch (op) {
     case '+': return context->builder()->CreateFAdd(left, right, "addtmp");
     case '-': return context->builder()->CreateFSub(left, right, "subtmp");
@@ -43,15 +45,15 @@ BinaryNode::codegen(Context *context) {
     case '<':
         left = context->builder()->CreateFCmpULT(left, right, "cmptmp");
         return context->builder()->CreateUIToFP(left,
-                                                Type::getDoubleTy(context->llvm_context()),
+                                                llvm_double_type,
+                                                "booltmp");
+    case '>':
+        right = context->builder()->CreateFCmpULT(right, left, "cmptmp");
+        return context->builder()->CreateUIToFP(right,
+                                                llvm_double_type,
                                                 "booltmp");
     default: break;
     }
 
-    Function *func = context->module()->getFunction(std::string("binary") + op);
-    assert(func && "binary operator not found!");
-
-    Value *operands[2] = { left, right };
-
-    return context->builder()->CreateCall(func, operands, "binop");
+    return ErrorV("Unknown binary operator!");
 }

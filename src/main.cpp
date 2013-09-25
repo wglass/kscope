@@ -1,15 +1,6 @@
-#include "llvm/Analysis/Passes.h"
-#include "llvm/Analysis/Verifier.h"
-#include "llvm/ExecutionEngine/ExecutionEngine.h"
 #include "llvm/ExecutionEngine/JIT.h"
-#include "llvm/IR/DataLayout.h"
-#include "llvm/IR/DerivedTypes.h"
-#include "llvm/IR/IRBuilder.h"
-#include "llvm/IR/LLVMContext.h"
-#include "llvm/IR/Module.h"
-#include "llvm/PassManager.h"
+#include "llvm/IR/Function.h"
 #include "llvm/Support/TargetSelect.h"
-#include "llvm/Transforms/Scalar.h"
 
 #include <cstdio>
 #include <cstdlib>
@@ -17,94 +8,94 @@
 #include <string>
 #include <vector>
 
-
 #include "ast/function.h"
 #include "ast/prototype.h"
-#include "lexer.h"
-#include "parser.h"
 #include "codegen/context.h"
+#include "parser.h"
 
+using ::llvm::Function;
+using ::llvm::InitializeNativeTarget;
 
-using namespace llvm;
 
 static void
-HandleDefinition(Context *context) {
-  if ( FunctionNode *node = ParseDefinition() ) {
-      if ( Function *func = node->codegen(context) ) {
-          fprintf(stderr, "Read function definition:");
-          func->dump();
-      }
-  } else {
-    getNextToken();
-  }
+HandleDefinition(Context *context, Parser *parser) {
+    if ( FunctionNode *node = parser->parse_definition() ) {
+        if ( Function *func = node->codegen(context) ) {
+            fprintf(stderr, "Read function definition:");
+            func->dump();
+        }
+    } else {
+        parser->lexer()->next();
+    }
 }
 
 static void
-HandleExtern(Context *context) {
-  if ( PrototypeNode *node = ParseExtern() ) {
-      if ( Function *func = node->codegen(context) ) {
-          fprintf(stderr, "Read extern:");
-          func->dump();
-      }
-  } else {
-    getNextToken();
-  }
+HandleExtern(Context *context, Parser *parser) {
+    if ( PrototypeNode *node = parser->parse_extern() ) {
+        if ( Function *func = node->codegen(context) ) {
+            fprintf(stderr, "Read extern:");
+            func->dump();
+        }
+    } else {
+        parser->lexer()->next();
+    }
 }
 
 static void
-HandleTopLevelExpression(Context *context) {
-  if ( FunctionNode *node = ParseTopLevelExpression() ) {
-      if ( Function *func = node->codegen(context) ) {
-void *func_ptr = context->engine()->getPointerToFunction(func);
+HandleTopLevelExpression(Context *context, Parser *parser) {
+    if ( FunctionNode *node = parser->parse_top_level_expression() ) {
+        if ( Function *func = node->codegen(context) ) {
+            void *func_ptr = context->engine()->getPointerToFunction(func);
 
-          double (*func_pointer)() = (double (*)())(intptr_t)func_ptr;
+            double (*func_pointer)() = (double (*)())(intptr_t)func_ptr;
 
-          fprintf(stderr, "Evaluated to: %f\n", func_pointer());
-      }
-  } else {
-    getNextToken();
-  }
+            fprintf(stderr, "Evaluated to: %f\n", func_pointer());
+        }
+    } else {
+        parser->lexer()->next();
+    }
 }
 
-static void
-MainLoop(Context *context) {
+static void MainLoop(Context *context, Parser *parser) {
     while (1) {
         fprintf(stderr, "ready> ");
-        switch (current_token) {
-        case tok_eof:
+        switch (parser->lexer()->current_token()) {
+        case Token::_EOF:
             context->module()->dump();
             return;
         case ';':
-            getNextToken();
+            parser->lexer()->next();
             break;
-        case tok_def:
-            HandleDefinition(context);
+        case Token::DEF:
+            HandleDefinition(context, parser);
             break;
-        case tok_extern:
-            HandleExtern(context);
+        case Token::EXTERN:
+            HandleExtern(context, parser);
             break;
         default:
-            HandleTopLevelExpression(context);
+            HandleTopLevelExpression(context, parser);
             break;
         }
     }
 }
 
 int main() {
-InitializeNativeTarget();
+    InitializeNativeTarget();
 
-Context *context = new Context();
+    Context *context = new Context();
+    Parser *parser = new Parser();
 
-    op_precedence['='] = 2;
-    op_precedence['<'] = 10;
-    op_precedence['+'] = 20;
-    op_precedence['-'] = 20;
-    op_precedence['*'] = 40;
+    parser->lexer()->add_op_precedence('=', 2);
+    parser->lexer()->add_op_precedence('<', 10);
+    parser->lexer()->add_op_precedence('+', 20);
+    parser->lexer()->add_op_precedence('-', 20);
+    parser->lexer()->add_op_precedence('*', 240);
 
     fprintf(stderr, "ready> ");
-    getNextToken();
 
-    MainLoop(context);
+    parser->lexer()->next();
+
+    MainLoop(context, parser);
 
     return 0;
 }
