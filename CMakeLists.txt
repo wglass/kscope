@@ -1,4 +1,14 @@
 cmake_minimum_required(VERSION 2.6)
+
+set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++")
+
+
+add_definitions(${CMAKE_CXX_FLAGS} -D__STDC_CONSTANT_MACROS)
+add_definitions(${CMAKE_CXX_FLAGS} -D__STDC_FORMAT_MACROS)
+add_definitions(${CMAKE_CXX_FLAGS} -D__STDC_LIMIT_MACROS)
+
+add_definitions(${CMAKE_CXX_FLAGS} -Wall)
+
 project(kscope)
 
 find_package(LLVM)
@@ -13,12 +23,5 @@ link_directories( ${LLVM_LIBRARY_DIRS} )
 set(CMAKE_BUILD_TYPE Debug)
 
 llvm_map_components_to_libraries(REQ_LLVM_LIBRARIES jit native)
-
-
-add_definitions(${CMAKE_CXX_FLAGS} -D__STDC_CONSTANT_MACROS)
-add_definitions(${CMAKE_CXX_FLAGS} -D__STDC_FORMAT_MACROS)
-add_definitions(${CMAKE_CXX_FLAGS} -D__STDC_LIMIT_MACROS)
-
-add_definitions(${CMAKE_CXX_FLAGS} -Wall)
 
 add_subdirectory(src)

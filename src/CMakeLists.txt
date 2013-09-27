@@ -5,4 +5,4 @@ add_subdirectory(codegen)
 
 add_executable(kscope ${KSCOPE_SOURCES})
 
-target_link_libraries(kscope ast codegen ${REQ_LLVM_LIBRARIES})
+target_link_libraries(kscope ast codegen ${REQ_LLVM_LIBRARIES} -lc++)
