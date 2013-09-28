@@ -25,7 +25,7 @@ HandleDefinition(Context *context, Parser *parser) {
             func->dump();
         }
     } else {
-        parser->lexer()->next();
+        parser->lexer->next();
     }
 }
 
@@ -37,7 +37,7 @@ HandleExtern(Context *context, Parser *parser) {
             func->dump();
         }
     } else {
-        parser->lexer()->next();
+        parser->lexer->next();
     }
 }
 
@@ -52,19 +52,19 @@ HandleTopLevelExpression(Context *context, Parser *parser) {
             fprintf(stderr, "Evaluated to: %f\n", func_pointer());
         }
     } else {
-        parser->lexer()->next();
+        parser->lexer->next();
     }
 }
 
 static void MainLoop(Context *context, Parser *parser) {
     while (1) {
         fprintf(stderr, "ready> ");
-        switch (parser->lexer()->current_token()) {
+        switch (parser->lexer->current_token()) {
         case Token::_EOF:
             context->module->dump();
             return;
         case ';':
-            parser->lexer()->next();
+            parser->lexer->next();
             break;
         case Token::DEF:
             HandleDefinition(context, parser);
@@ -85,15 +85,9 @@ int main() {
     Context *context = new Context();
     Parser *parser = new Parser();
 
-    parser->lexer()->add_op_precedence('=', 2);
-    parser->lexer()->add_op_precedence('<', 10);
-    parser->lexer()->add_op_precedence('+', 20);
-    parser->lexer()->add_op_precedence('-', 20);
-    parser->lexer()->add_op_precedence('*', 240);
-
     fprintf(stderr, "ready> ");
 
-    parser->lexer()->next();
+    parser->lexer->next();
 
     MainLoop(context, parser);
 

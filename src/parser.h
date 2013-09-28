@@ -8,10 +8,10 @@
 
 
 class Parser {
-    Lexer *lexer_;
-
     Parser(const Parser &other);
-    Parser &operator =(const Parser &other);
+    Parser(Parser &&other);
+
+    Parser &operator =(Parser other);
 
     ASTNode *parse_expression();
     ASTNode *parse_if();
@@ -29,7 +29,7 @@ public:
     Parser();
     ~Parser();
 
-    Lexer *lexer();
+    unique_ptr<Lexer> lexer;
 
     PrototypeNode *parse_extern();
     FunctionNode *parse_definition();
