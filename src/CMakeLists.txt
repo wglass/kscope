@@ -1,4 +1,4 @@
-file(GLOB KSCOPE_SOURCES *.cpp)
+file(GLOB KSCOPE_SOURCES *.cc)
 
 add_subdirectory(ast)
 add_subdirectory(codegen)
