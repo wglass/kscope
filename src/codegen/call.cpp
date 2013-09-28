@@ -9,7 +9,7 @@
 
 llvm::Value *
 CallNode::codegen(Context *context) {
-    llvm::Function *callee_func = context->module()->getFunction(callee);
+    llvm::Function *callee_func = context->module->getFunction(callee);
     if ( callee_func == 0 ) {
         return ErrorV("Unknown function referenced");
     }
@@ -24,5 +24,5 @@ CallNode::codegen(Context *context) {
         if ( arg_values.back() == 0 ) { return 0; }
     }
 
-    return context->builder()->CreateCall(callee_func, arg_values, "calltmp");
+    return context->builder->CreateCall(callee_func, arg_values, "calltmp");
 }

@@ -45,7 +45,7 @@ static void
 HandleTopLevelExpression(Context *context, Parser *parser) {
     if ( FunctionNode *node = parser->parse_top_level_expression() ) {
         if ( Function *func = node->codegen(context) ) {
-            void *func_ptr = context->engine()->getPointerToFunction(func);
+            void *func_ptr = context->engine->getPointerToFunction(func);
 
             double (*func_pointer)() = (double (*)())(intptr_t)func_ptr;
 
@@ -61,7 +61,7 @@ static void MainLoop(Context *context, Parser *parser) {
         fprintf(stderr, "ready> ");
         switch (parser->lexer()->current_token()) {
         case Token::_EOF:
-            context->module()->dump();
+            context->module->dump();
             return;
         case ';':
             parser->lexer()->next();

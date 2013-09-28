@@ -22,7 +22,7 @@ Value *
 VarNode::codegen(Context *context) {
     std::vector<AllocaInst *> old_bindings;
 
-    Function *func = context->builder()->GetInsertBlock()->getParent();
+    Function *func = context->builder->GetInsertBlock()->getParent();
 
     for (unsigned i = 0, size = var_names.size(); i != size; ++i) {
         const std::string &var_name = var_names[i].first;
@@ -37,7 +37,7 @@ VarNode::codegen(Context *context) {
         }
 
         AllocaInst *alloca = context->create_entry_block_alloca(func, var_name);
-        context->builder()->CreateStore(init_val, alloca);
+        context->builder->CreateStore(init_val, alloca);
 
         old_bindings.push_back(context->get_named_value(var_name));
         context->set_named_value(var_name, alloca);

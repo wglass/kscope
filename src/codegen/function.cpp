@@ -21,15 +21,15 @@ FunctionNode::codegen(Context *context) {
     BasicBlock *block = BasicBlock::Create(context->llvm_context(),
                                            "entry",
                                            func);
-    context->builder()->SetInsertPoint(block);
+    context->builder->SetInsertPoint(block);
 
     proto->create_argument_allocas(context, func);
 
     if ( Value *retval = body->codegen(context) ) {
-        context->builder()->CreateRet(retval);
+        context->builder->CreateRet(retval);
         llvm::verifyFunction(*func);
 
-        context->pass_manager()->run(*func);
+        context->pass_manager->run(*func);
 
         return func;
     }

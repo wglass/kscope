@@ -26,7 +26,7 @@ BinaryNode::codegen(Context *context) {
             return ErrorV("Unknown variable name");
         }
 
-        context->builder()->CreateStore(val, variable);
+        context->builder->CreateStore(val, variable);
 
         return val;
     }
@@ -39,17 +39,17 @@ BinaryNode::codegen(Context *context) {
     Type *llvm_double_type = Type::getDoubleTy(context->llvm_context());
 
     switch (op) {
-    case '+': return context->builder()->CreateFAdd(left, right, "addtmp");
-    case '-': return context->builder()->CreateFSub(left, right, "subtmp");
-    case '*': return context->builder()->CreateFMul(left, right, "multmp");
+    case '+': return context->builder->CreateFAdd(left, right, "addtmp");
+    case '-': return context->builder->CreateFSub(left, right, "subtmp");
+    case '*': return context->builder->CreateFMul(left, right, "multmp");
     case '<':
-        left = context->builder()->CreateFCmpULT(left, right, "cmptmp");
-        return context->builder()->CreateUIToFP(left,
+        left = context->builder->CreateFCmpULT(left, right, "cmptmp");
+        return context->builder->CreateUIToFP(left,
                                                 llvm_double_type,
                                                 "booltmp");
     case '>':
-        right = context->builder()->CreateFCmpULT(right, left, "cmptmp");
-        return context->builder()->CreateUIToFP(right,
+        right = context->builder->CreateFCmpULT(right, left, "cmptmp");
+        return context->builder->CreateUIToFP(right,
                                                 llvm_double_type,
                                                 "booltmp");
     default: break;

@@ -15,88 +15,70 @@
 
 #include "context.h"
 
-using namespace llvm;
+using ::llvm::AllocaInst;
+using ::llvm::CloneModule;
+using ::llvm::DataLayout;
+using ::llvm::ExecutionEngine;
+using ::llvm::Function;
+using ::llvm::FunctionPassManager;
+using ::llvm::IRBuilder;
+using ::llvm::LLVMContext;
+using ::llvm::Module;
+using ::llvm::Type;
+
 
 Context::Context()
-    : module_(new Module("my cool jit", getGlobalContext())),
-      builder_(new IRBuilder<>(module_->getContext())) {
-    initialize();
-}
+    : Context(new Module("my cool jit", llvm::getGlobalContext())) {}
 
 Context::Context(const Context &other)
-    : module_(CloneModule(other.readonly_module())),
-      builder_(new IRBuilder<>(module_->getContext())) {
-    initialize();
+    : Context(CloneModule(other.module.get())) {}
+
+Context::Context(Module *module)
+    : module(unique_ptr<Module>(module)),
+      engine(unique_ptr<ExecutionEngine>(ExecutionEngine::createJIT(module))),
+      builder(unique_ptr<IRBuilder<> >(new IRBuilder<>(module->getContext()))),
+      pass_manager(unique_ptr<FunctionPassManager>(new FunctionPassManager(module))) {
+
+    pass_manager->add(new DataLayout(*engine->getDataLayout()));
+    pass_manager->add(llvm::createBasicAliasAnalysisPass());
+    pass_manager->add(llvm::createPromoteMemoryToRegisterPass());
+    pass_manager->add(llvm::createInstructionCombiningPass());
+    pass_manager->add(llvm::createReassociatePass());
+    pass_manager->add(llvm::createGVNPass());
+    pass_manager->add(llvm::createCFGSimplificationPass());
+
+    pass_manager->doInitialization();
 }
 
-Context
-&Context::operator =(const Context &other) {
-    if ( this == &other ) {
-        return *this;
-    }
+Context::Context(Context &&other) {
+    module = std::move(other.module);
+    engine = std::move(other.engine);
+    builder = std::move(other.builder);
+    pass_manager = std::move(other.pass_manager);
+    other.module = nullptr;
+    other.engine = nullptr;
+    other.builder = nullptr;
+    other.pass_manager = nullptr;
+}
 
-    delete pass_manager_;
-    delete builder_;
-    delete engine_;
-    delete module_;
-
-    module_ = CloneModule(other.readonly_module());
-    builder_ = new IRBuilder<>(module_->getContext());
-
-    initialize();
-
+Context &
+Context::operator =(Context other) {
+    std::swap(module, other.module);
+    std::swap(engine, other.engine);
+    std::swap(builder, other.builder);
+    std::swap(pass_manager, other.pass_manager);
     return *this;
 }
 
 Context::~Context() {
-    delete pass_manager_;
-    delete builder_;
-    delete engine_;
-    delete module_;
+    pass_manager.reset();
+    builder.reset();
+    engine.reset();
+    module.reset();
 }
-
-void
-Context::initialize() {
-    std::string engine_error;
-    engine_ = EngineBuilder(module_).setErrorStr(&engine_error).create();
-
-    if ( ! engine_ ) {
-        fprintf(stderr,
-                "Could not create execution engine: %s\n",
-                engine_error.c_str());
-        exit(1);
-    }
-
-    pass_manager_ = new FunctionPassManager(module_);
-
-    pass_manager_->add(new DataLayout(*engine_->getDataLayout()));
-    pass_manager_->add(createBasicAliasAnalysisPass());
-    pass_manager_->add(createPromoteMemoryToRegisterPass());
-    pass_manager_->add(createInstructionCombiningPass());
-    pass_manager_->add(createReassociatePass());
-    pass_manager_->add(createGVNPass());
-    pass_manager_->add(createCFGSimplificationPass());
-
-    pass_manager_->doInitialization();
-}
-
-llvm::Module *
-Context::module() { return module_; }
-
-const llvm::Module *
-Context::readonly_module() const { return module_; }
-
-llvm::ExecutionEngine *
-Context::engine() { return engine_; }
-
-llvm::FunctionPassManager *
-Context::pass_manager() { return pass_manager_; }
-
-llvm::IRBuilder<> *
-Context::builder() { return builder_; }
 
 llvm::LLVMContext &
-Context::llvm_context() { return module_->getContext(); }
+Context::llvm_context() { return module->getContext(); }
 
 llvm::AllocaInst *
 Context::get_named_value (const std::string &name){
@@ -123,7 +105,7 @@ Context::create_entry_block_alloca(Function *func, const std::string &name) {
     IRBuilder<> tmp_builder(&func->getEntryBlock(),
                             func->getEntryBlock().begin());
 
-    return tmp_builder.CreateAlloca(Type::getDoubleTy(module_->getContext()),
+    return tmp_builder.CreateAlloca(Type::getDoubleTy(module->getContext()),
                                     0,
                                     name.c_str());
 }

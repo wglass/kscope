@@ -12,5 +12,5 @@ VariableNode::codegen(Context *context) {
         return ErrorV("Unknown variable name");
     }
 
-    return context->builder()->CreateLoad(val, name.c_str());
+    return context->builder->CreateLoad(val, name.c_str());
 }

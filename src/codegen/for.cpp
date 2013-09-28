@@ -21,19 +21,19 @@ using ::llvm::Type;
 
 Value *
 ForNode::codegen(Context *context) {
-    Function *func = context->builder()->GetInsertBlock()->getParent();
+    Function *func = context->builder->GetInsertBlock()->getParent();
 
     AllocaInst *alloca = context->create_entry_block_alloca(func, var_name);
 
     Value *start_value = start->codegen(context);
     if ( start_value == 0 ) { return 0; }
 
-    context->builder()->CreateStore(start_value, alloca);
+    context->builder->CreateStore(start_value, alloca);
 
     BasicBlock *loop_block = BasicBlock::Create(context->llvm_context(), "loop", func);
 
-    context->builder()->CreateBr(loop_block);
-    context->builder()->SetInsertPoint(loop_block);
+    context->builder->CreateBr(loop_block);
+    context->builder->SetInsertPoint(loop_block);
 
     AllocaInst *old_value = context->get_named_value(var_name);
     context->set_named_value(var_name, alloca);
@@ -51,11 +51,11 @@ ForNode::codegen(Context *context) {
     Value *end_condition = end->codegen(context);
     if ( end_condition == 0 ) { return 0; }
 
-    Value *current_var = context->builder()->CreateLoad(alloca, var_name.c_str());
-    Value *next_var = context->builder()->CreateFAdd(current_var, step_value, "nextvar");
-    context->builder()->CreateStore(next_var, alloca);
+    Value *current_var = context->builder->CreateLoad(alloca, var_name.c_str());
+    Value *next_var = context->builder->CreateFAdd(current_var, step_value, "nextvar");
+    context->builder->CreateStore(next_var, alloca);
 
-    end_condition = context->builder()->CreateFCmpONE(
+    end_condition = context->builder->CreateFCmpONE(
         end_condition,
         ConstantFP::get(context->llvm_context(), APFloat(0.0)),
         "loopcond"
@@ -63,8 +63,8 @@ ForNode::codegen(Context *context) {
 
     BasicBlock *after_block = BasicBlock::Create(context->llvm_context(), "afterloop", func);
 
-    context->builder()->CreateCondBr(end_condition, loop_block, after_block);
-    context->builder()->SetInsertPoint(after_block);
+    context->builder->CreateCondBr(end_condition, loop_block, after_block);
+    context->builder->SetInsertPoint(after_block);
 
     if ( old_value ) {
         context->set_named_value(var_name, old_value);

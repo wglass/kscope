@@ -10,6 +10,10 @@
 #include <map>
 #include <string>
 
+using ::std::map;
+using ::std::string;
+using ::std::unique_ptr;
+
 using ::llvm::AllocaInst;
 using ::llvm::ExecutionEngine;
 using ::llvm::Function;
@@ -20,27 +24,22 @@ using ::llvm::Module;
 
 
 class Context {
-    Module *module_;
-    ExecutionEngine *engine_;
-    FunctionPassManager *pass_manager_;
-    IRBuilder<> *builder_;
-
-    std::map<std::string, AllocaInst*> named_values;
+    map<string, AllocaInst*> named_values;
 
     Context(const Context &other);
-    Context &operator =(const Context &other);
+    Context(Module *module);
+    Context(Context &&other);
 
-    void initialize();
+    Context &operator =(Context other);
 
 public:
     Context();
     ~Context();
 
-    Module *module();
-    const Module *readonly_module() const;
-    FunctionPassManager *pass_manager();
-    ExecutionEngine *engine();
-    IRBuilder<> *builder();
+    unique_ptr<Module> module;
+    unique_ptr<ExecutionEngine> engine;
+    unique_ptr<IRBuilder<> > builder;
+    unique_ptr<FunctionPassManager> pass_manager;
 
     LLVMContext &llvm_context();
 
