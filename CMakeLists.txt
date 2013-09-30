@@ -8,6 +8,8 @@ add_definitions(${CMAKE_CXX_FLAGS} -D__STDC_FORMAT_MACROS)
 add_definitions(${CMAKE_CXX_FLAGS} -D__STDC_LIMIT_MACROS)
 
 add_definitions(${CMAKE_CXX_FLAGS} -Wall)
+add_definitions(${CMAKE_CXX_FLAGS} -Wextra)
+add_definitions(${CMAKE_CXX_FLAGS} -fvisibility-inlines-hidden)
 
 project(kscope)
 

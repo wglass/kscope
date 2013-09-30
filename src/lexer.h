@@ -30,9 +30,9 @@ public:
 
     void next();
 
-    const int current_token() const;
+    int current_token() const;
     const std::string identifier() const;
-    const double number_value() const;
+    double number_value() const;
     int token_precedence();
 
     void add_op_precedence(const char &op, const int precedence);

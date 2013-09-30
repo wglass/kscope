@@ -102,13 +102,13 @@ Lexer::next() {
     last_char = getchar();
 }
 
-const int
+int
 Lexer::current_token() const { return current_token_; }
 
 const std::string
 Lexer::identifier() const { return identifier_; }
 
-const double
+double
 Lexer::number_value() const { return number_value_; }
 
 int
