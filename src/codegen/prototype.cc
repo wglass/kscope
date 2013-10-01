@@ -4,7 +4,7 @@
 #include "llvm/IR/Type.h"
 
 #include "ast/prototype.h"
-#include "context.h"
+#include "renderer.h"
 #include "errors.h"
 
 #include <vector>
@@ -16,7 +16,7 @@ using ::llvm::Type;
 
 
 void
-PrototypeNode::create_argument_allocas(Context *context, Function *func) {
+PrototypeNode::create_argument_allocas(IRRenderer *renderer, Function *func) {
     Function::arg_iterator iterator = func->arg_begin();
 
     for (unsigned i = 0, size = args.size(); i != size; ++i, ++iterator) {
@@ -27,22 +27,22 @@ PrototypeNode::create_argument_allocas(Context *context, Function *func) {
 }
 
 Function *
-PrototypeNode::codegen(Context *context) {
+PrototypeNode::codegen(IRRenderer *renderer) {
     std::vector<Type*> doubles(args.size(),
-                               Type::getDoubleTy(context->llvm_context()));
+                               Type::getDoubleTy(renderer->llvm_context()));
     FunctionType *func_type = FunctionType::get(
-                                                Type::getDoubleTy(context->llvm_context()),
+                                                Type::getDoubleTy(renderer->llvm_context()),
                                                 doubles,
                                                 false);
 
     Function *func = Function::Create(func_type,
                                       Function::ExternalLinkage,
                                       name,
-                                      context->module.get());
+                                      renderer->module.get());
 
     if ( func->getName() != name ) {
         func->eraseFromParent();
-        func = context->module->getFunction(name);
+        func = renderer->module->getFunction(name);
 
         if ( !func->empty() ) {
             ErrorF("redefinition of function");

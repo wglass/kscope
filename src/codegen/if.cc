@@ -7,7 +7,7 @@
 #include "llvm/IR/Type.h"
 
 #include "ast/if.h"
-#include "context.h"
+#include "renderer.h"
 
 using ::llvm::APFloat;
 using ::llvm::BasicBlock;
@@ -19,41 +19,41 @@ using ::llvm::Type;
 
 
 Value *
-IfNode::codegen(Context *context) {
-    Value *cond_value = condition->codegen(context);
+IfNode::codegen(IRRenderer *renderer) {
+    Value *cond_value = condition->codegen(renderer);
     if ( cond_value == 0 ) { return 0; }
 
-    cond_value = context->builder->CreateFCmpONE(cond_value, ConstantFP::get(context->llvm_context(), APFloat(0.0)), "ifcond");
+    cond_value = renderer->builder->CreateFCmpONE(cond_value, ConstantFP::get(renderer->llvm_context(), APFloat(0.0)), "ifcond");
 
-    Function *func = context->builder->GetInsertBlock()->getParent();
+    Function *func = renderer->builder->GetInsertBlock()->getParent();
 
-    BasicBlock *then_block = BasicBlock::Create(context->llvm_context(), "then", func);
-    BasicBlock *else_block = BasicBlock::Create(context->llvm_context(), "else");
-    BasicBlock *merge_block = BasicBlock::Create(context->llvm_context(), "ifcont");
+    BasicBlock *then_block = BasicBlock::Create(renderer->llvm_context(), "then", func);
+    BasicBlock *else_block = BasicBlock::Create(renderer->llvm_context(), "else");
+    BasicBlock *merge_block = BasicBlock::Create(renderer->llvm_context(), "ifcont");
 
-    context->builder->CreateCondBr(cond_value, then_block, else_block);
-    context->builder->SetInsertPoint(then_block);
+    renderer->builder->CreateCondBr(cond_value, then_block, else_block);
+    renderer->builder->SetInsertPoint(then_block);
 
-    Value *then_value = then->codegen(context);
+    Value *then_value = then->codegen(renderer);
     if ( then_value == 0 ) { return 0; }
 
 
-    context->builder->CreateBr(merge_block);
-    then_block = context->builder->GetInsertBlock();
+    renderer->builder->CreateBr(merge_block);
+    then_block = renderer->builder->GetInsertBlock();
 
     func->getBasicBlockList().push_back(else_block);
-    context->builder->SetInsertPoint(else_block);
+    renderer->builder->SetInsertPoint(else_block);
 
-    Value *else_value = _else->codegen(context);
+    Value *else_value = _else->codegen(renderer);
     if ( else_value == 0 ) { return 0; }
 
-    context->builder->CreateBr(merge_block);
-    else_block = context->builder->GetInsertBlock();
+    renderer->builder->CreateBr(merge_block);
+    else_block = renderer->builder->GetInsertBlock();
 
     func->getBasicBlockList().push_back(merge_block);
-    context->builder->SetInsertPoint(merge_block);
-    PHINode *node = context->builder->CreatePHI(
-                                                Type::getDoubleTy(context->llvm_context()),
+    renderer->builder->SetInsertPoint(merge_block);
+    PHINode *node = renderer->builder->CreatePHI(
+                                                Type::getDoubleTy(renderer->llvm_context()),
                                                 2,
                                                 "iftmp");
 

@@ -3,7 +3,7 @@
 #include "llvm/IR/Value.h"
 
 #include "node.h"
-#include "codegen/context.h"
+#include "codegen/renderer.h"
 
 
 class IfNode : public ASTNode {
@@ -11,5 +11,5 @@ class IfNode : public ASTNode {
 
 public:
   IfNode(ASTNode *cond, ASTNode *then, ASTNode *_else);
-  virtual llvm::Value *codegen(Context *context);
+  virtual llvm::Value *codegen(IRRenderer *renderer);
 };

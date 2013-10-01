@@ -13,7 +13,7 @@
 
 #include <string>
 
-#include "context.h"
+#include "renderer.h"
 
 using ::llvm::AllocaInst;
 using ::llvm::CloneModule;
@@ -27,13 +27,13 @@ using ::llvm::Module;
 using ::llvm::Type;
 
 
-Context::Context()
-    : Context(new Module("my cool jit", llvm::getGlobalContext())) {}
+IRRenderer::IRRenderer()
+    : IRRenderer(new Module("my cool jit", llvm::getGlobalContext())) {}
 
-Context::Context(const Context &other)
-    : Context(CloneModule(other.module.get())) {}
+IRRenderer::IRRenderer(const IRRenderer &other)
+    : IRRenderer(CloneModule(other.module.get())) {}
 
-Context::Context(Module *module)
+IRRenderer::IRRenderer(Module *module)
     : module(unique_ptr<Module>(module)),
       engine(unique_ptr<ExecutionEngine>(ExecutionEngine::createJIT(module))),
       builder(unique_ptr<IRBuilder<> >(new IRBuilder<>(module->getContext()))),
@@ -50,7 +50,7 @@ Context::Context(Module *module)
     pass_manager->doInitialization();
 }
 
-Context::Context(Context &&other) {
+IRRenderer::IRRenderer(IRRenderer &&other) {
     module = std::move(other.module);
     engine = std::move(other.engine);
     builder = std::move(other.builder);
@@ -61,8 +61,8 @@ Context::Context(Context &&other) {
     other.pass_manager = nullptr;
 }
 
-Context &
-Context::operator =(Context other) {
+IRRenderer &
+IRRenderer::operator =(IRRenderer other) {
     std::swap(module, other.module);
     std::swap(engine, other.engine);
     std::swap(builder, other.builder);
@@ -70,7 +70,7 @@ Context::operator =(Context other) {
     return *this;
 }
 
-Context::~Context() {
+IRRenderer::~IRRenderer() {
     pass_manager.reset();
     builder.reset();
     engine.reset();
@@ -78,30 +78,30 @@ Context::~Context() {
 }
 
 llvm::LLVMContext &
-Context::llvm_context() { return module->getContext(); }
+IRRenderer::llvm_context() { return module->getContext(); }
 
 llvm::AllocaInst *
-Context::get_named_value (const std::string &name){
+IRRenderer::get_named_value (const std::string &name){
     return named_values[name];
 }
 
 void
-Context::set_named_value(const std::string &name, llvm::AllocaInst *value) {
+IRRenderer::set_named_value(const std::string &name, llvm::AllocaInst *value) {
     named_values[name] = value;
 }
 
 void
-Context::clear_named_value(const std::string &name) {
+IRRenderer::clear_named_value(const std::string &name) {
     named_values.erase(name);
 }
 
 void
-Context::clear_all_named_values() {
+IRRenderer::clear_all_named_values() {
     named_values.clear();
 }
 
 AllocaInst *
-Context::create_entry_block_alloca(Function *func, const std::string &name) {
+IRRenderer::create_entry_block_alloca(Function *func, const std::string &name) {
     IRBuilder<> tmp_builder(&func->getEntryBlock(),
                             func->getEntryBlock().begin());
 

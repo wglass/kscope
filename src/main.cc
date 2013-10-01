@@ -10,7 +10,7 @@
 
 #include "ast/function.h"
 #include "ast/prototype.h"
-#include "codegen/context.h"
+#include "codegen/renderer.h"
 #include "parser.h"
 
 using ::llvm::Function;
@@ -18,9 +18,9 @@ using ::llvm::InitializeNativeTarget;
 
 
 static void
-HandleDefinition(Context *context, Parser *parser) {
+HandleDefinition(IRRenderer *renderer, Parser *parser) {
     if ( FunctionNode *node = parser->parse_definition() ) {
-        if ( Function *func = node->codegen(context) ) {
+        if ( Function *func = node->codegen(renderer) ) {
             fprintf(stderr, "Read function definition:");
             func->dump();
         }
@@ -30,9 +30,9 @@ HandleDefinition(Context *context, Parser *parser) {
 }
 
 static void
-HandleExtern(Context *context, Parser *parser) {
+HandleExtern(IRRenderer *renderer, Parser *parser) {
     if ( PrototypeNode *node = parser->parse_extern() ) {
-        if ( Function *func = node->codegen(context) ) {
+        if ( Function *func = node->codegen(renderer) ) {
             fprintf(stderr, "Read extern:");
             func->dump();
         }
@@ -42,10 +42,10 @@ HandleExtern(Context *context, Parser *parser) {
 }
 
 static void
-HandleTopLevelExpression(Context *context, Parser *parser) {
+HandleTopLevelExpression(IRRenderer *renderer, Parser *parser) {
     if ( FunctionNode *node = parser->parse_top_level_expression() ) {
-        if ( Function *func = node->codegen(context) ) {
-            void *func_ptr = context->engine->getPointerToFunction(func);
+        if ( Function *func = node->codegen(renderer) ) {
+            void *func_ptr = renderer->engine->getPointerToFunction(func);
 
             double (*func_pointer)() = (double (*)())(intptr_t)func_ptr;
 
@@ -56,24 +56,24 @@ HandleTopLevelExpression(Context *context, Parser *parser) {
     }
 }
 
-static void MainLoop(Context *context, Parser *parser) {
+static void MainLoop(IRRenderer *renderer, Parser *parser) {
     while (1) {
         fprintf(stderr, "ready> ");
         switch (parser->lexer->current_token()) {
         case Token::_EOF:
-            context->module->dump();
+            renderer->module->dump();
             return;
         case ';':
             parser->lexer->next();
             break;
         case Token::DEF:
-            HandleDefinition(context, parser);
+            HandleDefinition(renderer, parser);
             break;
         case Token::EXTERN:
-            HandleExtern(context, parser);
+            HandleExtern(renderer, parser);
             break;
         default:
-            HandleTopLevelExpression(context, parser);
+            HandleTopLevelExpression(renderer, parser);
             break;
         }
     }
@@ -82,14 +82,14 @@ static void MainLoop(Context *context, Parser *parser) {
 int main() {
     InitializeNativeTarget();
 
-    Context *context = new Context();
+    IRRenderer *renderer = new IRRenderer();
     Parser *parser = new Parser();
 
     fprintf(stderr, "ready> ");
 
     parser->lexer->next();
 
-    MainLoop(context, parser);
+    MainLoop(renderer, parser);
 
     return 0;
 }

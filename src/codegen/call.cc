@@ -2,14 +2,14 @@
 #include "llvm/IR/Value.h"
 
 #include "ast/call.h"
-#include "context.h"
+#include "renderer.h"
 #include "errors.h"
 
 #include <vector>
 
 llvm::Value *
-CallNode::codegen(Context *context) {
-    llvm::Function *callee_func = context->module->getFunction(callee);
+CallNode::codegen(IRRenderer *renderer) {
+    llvm::Function *callee_func = renderer->module->getFunction(callee);
     if ( callee_func == 0 ) {
         return ErrorV("Unknown function referenced");
     }
@@ -24,5 +24,5 @@ CallNode::codegen(Context *context) {
         if ( arg_values.back() == 0 ) { return 0; }
     }
 
-    return context->builder->CreateCall(callee_func, arg_values, "calltmp");
+    return renderer->builder->CreateCall(callee_func, arg_values, "calltmp");
 }

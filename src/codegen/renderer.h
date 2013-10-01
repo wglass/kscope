@@ -23,18 +23,18 @@ using ::llvm::LLVMContext;
 using ::llvm::Module;
 
 
-class Context {
+class IRRenderer {
     map<string, AllocaInst*> named_values;
 
-    Context(const Context &other);
-    Context(Module *module);
-    Context(Context &&other);
+    IRRenderer(const IRRenderer &other);
+    IRRenderer(Module *module);
+    IRRenderer(IRRenderer &&other);
 
-    Context &operator =(Context other);
+    IRRenderer &operator =(IRRenderer other);
 
 public:
-    Context();
-    ~Context();
+    IRRenderer();
+    ~IRRenderer();
 
     unique_ptr<Module> module;
     unique_ptr<ExecutionEngine> engine;

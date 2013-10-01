@@ -3,10 +3,10 @@
 #include "llvm/IR/Value.h"
 
 #include "ast/number.h"
-#include "context.h"
+#include "renderer.h"
 
 
 llvm::Value *
-NumberNode::codegen(Context *context) {
-    return llvm::ConstantFP::get(context->llvm_context(), llvm::APFloat(val));
+NumberNode::codegen(IRRenderer *renderer) {
+    return llvm::ConstantFP::get(renderer->llvm_context(), llvm::APFloat(val));
 }

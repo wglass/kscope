@@ -3,7 +3,7 @@
 #include "llvm/IR/Value.h"
 
 #include "node.h"
-#include "codegen/context.h"
+#include "codegen/renderer.h"
 
 
 class UnaryNode : public ASTNode {
@@ -12,5 +12,5 @@ class UnaryNode : public ASTNode {
 
 public:
   UnaryNode(char opcode, ASTNode *operand);
-  virtual llvm::Value *codegen(Context *context);
+  virtual llvm::Value *codegen(IRRenderer *renderer);
 };

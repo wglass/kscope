@@ -6,7 +6,7 @@
 #include "llvm/IR/Value.h"
 
 #include "node.h"
-#include "codegen/context.h"
+#include "codegen/renderer.h"
 
 
 class VarNode : public ASTNode {
@@ -16,5 +16,5 @@ class VarNode : public ASTNode {
 public:
   VarNode(const std::vector<std::pair<std::string, ASTNode*> > &var_names,
           ASTNode *body);
-  virtual llvm::Value *codegen(Context *context);
+  virtual llvm::Value *codegen(IRRenderer *renderer);
 };

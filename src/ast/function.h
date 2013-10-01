@@ -5,7 +5,7 @@
 
 #include "node.h"
 #include "prototype.h"
-#include "codegen/context.h"
+#include "codegen/renderer.h"
 
 
 class FunctionNode : public ASTNode {
@@ -14,5 +14,5 @@ class FunctionNode : public ASTNode {
 
 public:
   FunctionNode(PrototypeNode *proto, ASTNode *body);
-  llvm::Function *codegen(Context *context);
+  llvm::Function *codegen(IRRenderer *renderer);
 };

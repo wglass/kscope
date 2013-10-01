@@ -7,7 +7,7 @@
 #include "llvm/IR/Type.h"
 
 #include "ast/for.h"
-#include "context.h"
+#include "renderer.h"
 
 using ::llvm::AllocaInst;
 using ::llvm::APFloat;
@@ -20,57 +20,57 @@ using ::llvm::Type;
 
 
 Value *
-ForNode::codegen(Context *context) {
-    Function *func = context->builder->GetInsertBlock()->getParent();
+ForNode::codegen(IRRenderer *renderer) {
+    Function *func = renderer->builder->GetInsertBlock()->getParent();
 
-    AllocaInst *alloca = context->create_entry_block_alloca(func, var_name);
+    AllocaInst *alloca = renderer->create_entry_block_alloca(func, var_name);
 
-    Value *start_value = start->codegen(context);
+    Value *start_value = start->codegen(renderer);
     if ( start_value == 0 ) { return 0; }
 
-    context->builder->CreateStore(start_value, alloca);
+    renderer->builder->CreateStore(start_value, alloca);
 
-    BasicBlock *loop_block = BasicBlock::Create(context->llvm_context(), "loop", func);
+    BasicBlock *loop_block = BasicBlock::Create(renderer->llvm_context(), "loop", func);
 
-    context->builder->CreateBr(loop_block);
-    context->builder->SetInsertPoint(loop_block);
+    renderer->builder->CreateBr(loop_block);
+    renderer->builder->SetInsertPoint(loop_block);
 
-    AllocaInst *old_value = context->get_named_value(var_name);
-    context->set_named_value(var_name, alloca);
+    AllocaInst *old_value = renderer->get_named_value(var_name);
+    renderer->set_named_value(var_name, alloca);
 
-    if ( body->codegen(context) == 0 ) { return 0; }
+    if ( body->codegen(renderer) == 0 ) { return 0; }
 
     Value *step_value;
     if ( step ) {
-        step_value = step->codegen(context);
+        step_value = step->codegen(renderer);
         if ( step_value == 0 ) { return 0; }
     } else {
-        step_value = ConstantFP::get(context->llvm_context(), APFloat(1.0));
+        step_value = ConstantFP::get(renderer->llvm_context(), APFloat(1.0));
     }
 
-    Value *end_condition = end->codegen(context);
+    Value *end_condition = end->codegen(renderer);
     if ( end_condition == 0 ) { return 0; }
 
-    Value *current_var = context->builder->CreateLoad(alloca, var_name.c_str());
-    Value *next_var = context->builder->CreateFAdd(current_var, step_value, "nextvar");
-    context->builder->CreateStore(next_var, alloca);
+    Value *current_var = renderer->builder->CreateLoad(alloca, var_name.c_str());
+    Value *next_var = renderer->builder->CreateFAdd(current_var, step_value, "nextvar");
+    renderer->builder->CreateStore(next_var, alloca);
 
-    end_condition = context->builder->CreateFCmpONE(
+    end_condition = renderer->builder->CreateFCmpONE(
         end_condition,
-        ConstantFP::get(context->llvm_context(), APFloat(0.0)),
+        ConstantFP::get(renderer->llvm_context(), APFloat(0.0)),
         "loopcond"
     );
 
-    BasicBlock *after_block = BasicBlock::Create(context->llvm_context(), "afterloop", func);
+    BasicBlock *after_block = BasicBlock::Create(renderer->llvm_context(), "afterloop", func);
 
-    context->builder->CreateCondBr(end_condition, loop_block, after_block);
-    context->builder->SetInsertPoint(after_block);
+    renderer->builder->CreateCondBr(end_condition, loop_block, after_block);
+    renderer->builder->SetInsertPoint(after_block);
 
     if ( old_value ) {
-        context->set_named_value(var_name, old_value);
+        renderer->set_named_value(var_name, old_value);
     } else {
-        context->clear_named_value(var_name);
+        renderer->clear_named_value(var_name);
     }
 
-    return Constant::getNullValue(Type::getDoubleTy(context->llvm_context()));
+    return Constant::getNullValue(Type::getDoubleTy(renderer->llvm_context()));
 }

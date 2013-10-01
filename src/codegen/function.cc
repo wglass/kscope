@@ -4,7 +4,7 @@
 #include "llvm/IR/Value.h"
 
 #include "ast/function.h"
-#include "context.h"
+#include "renderer.h"
 
 using ::llvm::BasicBlock;
 using ::llvm::Function;
@@ -12,24 +12,24 @@ using ::llvm::Value;
 
 
 Function *
-FunctionNode::codegen(Context *context) {
-    context->clear_all_named_values();
+FunctionNode::codegen(IRRenderer *renderer) {
+    renderer->clear_all_named_values();
 
-    Function *func = proto->codegen(context);
+    Function *func = proto->codegen(renderer);
     if ( func == 0 ) { return 0; }
 
-    BasicBlock *block = BasicBlock::Create(context->llvm_context(),
+    BasicBlock *block = BasicBlock::Create(renderer->llvm_context(),
                                            "entry",
                                            func);
-    context->builder->SetInsertPoint(block);
+    renderer->builder->SetInsertPoint(block);
 
-    proto->create_argument_allocas(context, func);
+    proto->create_argument_allocas(renderer, func);
 
-    if ( Value *retval = body->codegen(context) ) {
-        context->builder->CreateRet(retval);
+    if ( Value *retval = body->codegen(renderer) ) {
+        renderer->builder->CreateRet(retval);
         llvm::verifyFunction(*func);
 
-        context->pass_manager->run(*func);
+        renderer->pass_manager->run(*func);
 
         return func;
     }

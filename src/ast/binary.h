@@ -5,7 +5,7 @@
 #include "llvm/IR/Value.h"
 
 #include "node.h"
-#include "codegen/context.h"
+#include "codegen/renderer.h"
 
 
 class BinaryNode : public ASTNode {
@@ -14,5 +14,5 @@ class BinaryNode : public ASTNode {
 
 public:
   BinaryNode(char op, ASTNode *lhs, ASTNode *rhs);
-  virtual llvm::Value *codegen(Context *context);
+  virtual llvm::Value *codegen(IRRenderer *renderer);
 };

@@ -3,7 +3,7 @@
 
 #include "ast/binary.h"
 #include "ast/variable.h"
-#include "context.h"
+#include "renderer.h"
 #include "errors.h"
 
 using ::llvm::Value;
@@ -11,45 +11,45 @@ using ::llvm::Type;
 
 
 Value *
-BinaryNode::codegen(Context *context) {
+BinaryNode::codegen(IRRenderer *renderer) {
     if ( op == '=' ) {
         VariableNode *lhse = dynamic_cast<VariableNode*>(lhs);
         if ( ! lhse ) {
             return ErrorV("destination of '=' must be a variable");
         }
 
-        Value *val = rhs->codegen(context);
+        Value *val = rhs->codegen(renderer);
         if ( val == 0 ) { return 0; }
 
-        Value *variable = context->get_named_value(lhse->getName());
+        Value *variable = renderer->get_named_value(lhse->getName());
         if ( variable == 0 ) {
             return ErrorV("Unknown variable name");
         }
 
-        context->builder->CreateStore(val, variable);
+        renderer->builder->CreateStore(val, variable);
 
         return val;
     }
 
-    Value *left = lhs->codegen(context);
-    Value *right = rhs->codegen(context);
+    Value *left = lhs->codegen(renderer);
+    Value *right = rhs->codegen(renderer);
 
     if (left == 0 || right == 0 ) { return 0; }
 
-    Type *llvm_double_type = Type::getDoubleTy(context->llvm_context());
+    Type *llvm_double_type = Type::getDoubleTy(renderer->llvm_context());
 
     switch (op) {
-    case '+': return context->builder->CreateFAdd(left, right, "addtmp");
-    case '-': return context->builder->CreateFSub(left, right, "subtmp");
-    case '*': return context->builder->CreateFMul(left, right, "multmp");
+    case '+': return renderer->builder->CreateFAdd(left, right, "addtmp");
+    case '-': return renderer->builder->CreateFSub(left, right, "subtmp");
+    case '*': return renderer->builder->CreateFMul(left, right, "multmp");
     case '<':
-        left = context->builder->CreateFCmpULT(left, right, "cmptmp");
-        return context->builder->CreateUIToFP(left,
+        left = renderer->builder->CreateFCmpULT(left, right, "cmptmp");
+        return renderer->builder->CreateUIToFP(left,
                                                 llvm_double_type,
                                                 "booltmp");
     case '>':
-        right = context->builder->CreateFCmpULT(right, left, "cmptmp");
-        return context->builder->CreateUIToFP(right,
+        right = renderer->builder->CreateFCmpULT(right, left, "cmptmp");
+        return renderer->builder->CreateUIToFP(right,
                                                 llvm_double_type,
                                                 "booltmp");
     default: break;

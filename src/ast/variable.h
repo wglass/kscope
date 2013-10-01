@@ -5,7 +5,7 @@
 #include "llvm/IR/Value.h"
 
 #include "node.h"
-#include "codegen/context.h"
+#include "codegen/renderer.h"
 
 
 class VariableNode : public ASTNode {
@@ -14,5 +14,5 @@ class VariableNode : public ASTNode {
 public:
   VariableNode(const std::string &name);
   const std::string getName() const;
-  virtual llvm::Value *codegen(Context *context);
+  virtual llvm::Value *codegen(IRRenderer *renderer);
 };

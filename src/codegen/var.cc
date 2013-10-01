@@ -6,8 +6,9 @@
 
 #include "ast/node.h"
 #include "ast/var.h"
-#include "context.h"
+#include "renderer.h"
 
+#include <cstddef>
 #include <string>
 #include <vector>
 
@@ -19,10 +20,10 @@ using ::llvm::Value;
 
 
 Value *
-VarNode::codegen(Context *context) {
+VarNode::codegen(IRRenderer *renderer) {
     std::vector<AllocaInst *> old_bindings;
 
-    Function *func = context->builder->GetInsertBlock()->getParent();
+    Function *func = renderer->builder->GetInsertBlock()->getParent();
 
     for (unsigned i = 0, size = var_names.size(); i != size; ++i) {
         const std::string &var_name = var_names[i].first;
@@ -30,24 +31,24 @@ VarNode::codegen(Context *context) {
 
         Value *init_val;
         if ( init ) {
-            init_val = init->codegen(context);
+            init_val = init->codegen(renderer);
             if ( init_val == 0) { return 0; }
         } else {
-            init_val = ConstantFP::get(context->llvm_context(), APFloat(0.0));
+            init_val = ConstantFP::get(renderer->llvm_context(), APFloat(0.0));
         }
 
-        AllocaInst *alloca = context->create_entry_block_alloca(func, var_name);
-        context->builder->CreateStore(init_val, alloca);
+        AllocaInst *alloca = renderer->create_entry_block_alloca(func, var_name);
+        renderer->builder->CreateStore(init_val, alloca);
 
-        old_bindings.push_back(context->get_named_value(var_name));
-        context->set_named_value(var_name, alloca);
+        old_bindings.push_back(renderer->get_named_value(var_name));
+        renderer->set_named_value(var_name, alloca);
     }
 
-    Value *body_val = body->codegen(context);
+    Value *body_val = body->codegen(renderer);
     if ( body_val == 0 ) { return 0; }
 
-    for (unsigned i = 0, size = var_names.size(); i != size; ++i) {
-        context->set_named_value(var_names[i].first, old_bindings[i]);
+    for (std::size_t i = 0, size = var_names.size(); i != size; ++i) {
+        renderer->set_named_value(var_names[i].first, old_bindings[i]);
     }
 
     return body_val;
