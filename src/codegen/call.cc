@@ -19,8 +19,8 @@ CallNode::codegen(IRRenderer *renderer) {
     }
 
     std::vector<llvm::Value*> arg_values;
-    for ( unsigned i = 0, num_args = args.size(); i < num_args; ++i ) {
-        arg_values.push_back(args[i]->codegen(context));
+    for ( auto &arg : args ) {
+        arg_values.push_back(arg->codegen(renderer));
         if ( arg_values.back() == 0 ) { return 0; }
     }
 

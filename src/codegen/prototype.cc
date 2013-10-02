@@ -2,6 +2,7 @@
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Type.h"
+#include "llvm/IR/Value.h"
 
 #include "ast/prototype.h"
 #include "renderer.h"
@@ -13,16 +14,17 @@ using ::llvm::AllocaInst;
 using ::llvm::Function;
 using ::llvm::FunctionType;
 using ::llvm::Type;
+using ::llvm::Value;
 
 
 void
 PrototypeNode::create_argument_allocas(IRRenderer *renderer, Function *func) {
     Function::arg_iterator iterator = func->arg_begin();
-
-    for (unsigned i = 0, size = args.size(); i != size; ++i, ++iterator) {
-        AllocaInst *alloca = context->create_entry_block_alloca(func, args[i]);
-        context->builder->CreateStore(iterator, alloca);
-        context->set_named_value(args[i], alloca);
+    for ( auto &arg : args) {
+        Value *val = iterator++;
+        AllocaInst *alloca = renderer->create_entry_block_alloca(func, arg);
+        renderer->builder->CreateStore(val, alloca);
+        renderer->set_named_value(arg, alloca);
     }
 }
 
@@ -54,13 +56,10 @@ PrototypeNode::codegen(IRRenderer *renderer) {
         }
     }
 
-    unsigned index = 0;
-    for (
-         Function::arg_iterator iterator = func->arg_begin();
-         index != args.size();
-         ++iterator, ++index
-         ) {
-        iterator->setName(args[index]);
+    Function::arg_iterator iterator = func->arg_begin();
+    for ( auto &arg : args ) {
+        Value *val = iterator++;
+        val->setName(arg);
     }
 
     return func;

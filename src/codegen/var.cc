@@ -25,9 +25,9 @@ VarNode::codegen(IRRenderer *renderer) {
 
     Function *func = renderer->builder->GetInsertBlock()->getParent();
 
-    for (unsigned i = 0, size = var_names.size(); i != size; ++i) {
-        const std::string &var_name = var_names[i].first;
-        ASTNode *init = var_names[i].second;
+    for ( auto &var_pair : var_names) {
+        const std::string &var_name = var_pair.first;
+        ASTNode *init = var_pair.second;
 
         Value *init_val;
         if ( init ) {
@@ -47,8 +47,10 @@ VarNode::codegen(IRRenderer *renderer) {
     Value *body_val = body->codegen(renderer);
     if ( body_val == 0 ) { return 0; }
 
-    for (std::size_t i = 0, size = var_names.size(); i != size; ++i) {
-        renderer->set_named_value(var_names[i].first, old_bindings[i]);
+    std::size_t index = 0;
+    for ( auto &var_pair : var_names) {
+        renderer->set_named_value(var_pair.first, old_bindings[index]);
+        ++index;
     }
 
     return body_val;
