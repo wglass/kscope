@@ -15,5 +15,5 @@ class CallNode : public ASTNode {
 
 public:
   CallNode(const std::string &callee, std::vector<ASTNode*> &args);
-  virtual llvm::Value *codegen(IRRenderer *renderer);
+  virtual llvm::Value *codegen(IRRenderer *renderer) override final;
 };

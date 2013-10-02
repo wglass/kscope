@@ -12,5 +12,5 @@ class UnaryNode : public ASTNode {
 
 public:
   UnaryNode(char opcode, ASTNode *operand);
-  virtual llvm::Value *codegen(IRRenderer *renderer);
+  virtual llvm::Value *codegen(IRRenderer *renderer) override final;
 };

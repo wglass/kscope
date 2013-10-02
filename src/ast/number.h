@@ -6,9 +6,9 @@
 #include "codegen/renderer.h"
 
 class NumberNode : public ASTNode {
-  double val;
+    double val;
 
 public:
-  NumberNode(double val);
-  virtual llvm::Value *codegen(IRRenderer *renderer);
+    NumberNode(double val);
+    virtual llvm::Value *codegen(IRRenderer *renderer) override final;
 };

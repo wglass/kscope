@@ -16,5 +16,5 @@ public:
   ForNode(const std::string &var_name,
           ASTNode *start, ASTNode *end, ASTNode *step,
           ASTNode *body);
-  virtual llvm::Value *codegen(IRRenderer *renderer);
+  virtual llvm::Value *codegen(IRRenderer *renderer) override final;
 };

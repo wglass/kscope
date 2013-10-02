@@ -11,5 +11,5 @@ class IfNode : public ASTNode {
 
 public:
   IfNode(ASTNode *cond, ASTNode *then, ASTNode *_else);
-  virtual llvm::Value *codegen(IRRenderer *renderer);
+  virtual llvm::Value *codegen(IRRenderer *renderer) override final;
 };
