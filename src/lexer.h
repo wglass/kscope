@@ -3,18 +3,15 @@
 #include <string>
 #include <map>
 
-struct Token {
-    static const int _EOF = -1;
-    static const int DEF = -2;
-    static const int EXTERN = -3;
-    static const int IDENTIFIER = -4;
-    static const int NUMBER = -5;
-    static const int IF = -6;
-    static const int THEN = -7;
-    static const int ELSE = -8;
-    static const int FOR = -9;
-    static const int IN = -10;
-    static const int VAR = -13;
+enum class Token {
+    _EOF = -1,
+    DEF = -2, EXTERN = -3,
+    IDENTIFIER = -4,
+    NUMBER = -5,
+    IF = -6, THEN = -7, ELSE = -8,
+    FOR = -9,
+    IN = -10,
+    VAR = -13
 };
 
 class Lexer {
@@ -22,7 +19,7 @@ class Lexer {
     std::string identifier_;
     double number_value_;
     std::map<char, int> op_precedence_;
-    std::map<std::string, int> keyword_map_;
+    std::map<std::string, Token> keyword_map_;
 
 public:
     Lexer();

@@ -60,10 +60,10 @@ Lexer::next() {
         }
 
         if ( keyword_map_.count(identifier_) == 0 ) {
-            current_token_ = Token::IDENTIFIER;
+            current_token_ = (int)Token::IDENTIFIER;
             return;
         } else {
-            current_token_ = keyword_map_[identifier_];
+            current_token_ = (int)keyword_map_[identifier_];
             return;
         }
     }
@@ -78,7 +78,7 @@ Lexer::next() {
 
         number_value_ = strtod(number_string.c_str(), 0);
 
-        current_token_ = Token::NUMBER;
+        current_token_ = (int)Token::NUMBER;
         return;
     }
 
@@ -94,7 +94,7 @@ Lexer::next() {
     }
 
     if ( last_char == EOF ) {
-        current_token_ = Token::_EOF;
+        current_token_ = (int)Token::_EOF;
         return;
     }
 

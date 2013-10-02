@@ -60,16 +60,16 @@ static void MainLoop(IRRenderer *renderer, Parser *parser) {
     while (1) {
         fprintf(stderr, "ready> ");
         switch (parser->lexer->current_token()) {
-        case Token::_EOF:
+        case (int)Token::_EOF:
             renderer->module->dump();
             return;
         case ';':
             parser->lexer->next();
             break;
-        case Token::DEF:
+        case (int)Token::DEF:
             HandleDefinition(renderer, parser);
             break;
-        case Token::EXTERN:
+        case (int)Token::EXTERN:
             HandleExtern(renderer, parser);
             break;
         default:

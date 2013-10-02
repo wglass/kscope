@@ -95,7 +95,7 @@ Parser::parse_var() {
 
     std::vector<std::pair<std::string, ASTNode*> > var_names;
 
-    if ( lexer->current_token() != Token::IDENTIFIER ) {
+    if ( lexer->current_token() != (int)Token::IDENTIFIER ) {
         return Error("Expected identifier after var");
     }
 
@@ -116,12 +116,12 @@ Parser::parse_var() {
 
         lexer->next();
 
-        if ( lexer->current_token() != Token::IDENTIFIER ) {
+        if ( lexer->current_token() != (int)Token::IDENTIFIER ) {
             return Error("Expected identifier list after var");
         }
     }
 
-    if ( lexer->current_token() != Token::IN ) {
+    if ( lexer->current_token() != (int)Token::IN ) {
         return Error("Expected 'in' keyword after 'var'");
     }
     lexer->next();
@@ -135,17 +135,17 @@ Parser::parse_var() {
 ASTNode *
 Parser::parse_primary() {
     switch( lexer->current_token() ) {
-    case Token::IDENTIFIER:
+    case (int)Token::IDENTIFIER:
         return parse_identifier();
-    case Token::NUMBER:
+    case (int)Token::NUMBER:
         return parse_number();
     case '(':
         return parse_paren();
-    case Token::IF:
+    case (int)Token::IF:
         return parse_if();
-    case Token::FOR:
+    case (int)Token::FOR:
         return parse_for();
-    case Token::VAR:
+    case (int)Token::VAR:
         return parse_var();
     default:
         fprintf(stderr, "Unknown token '%c' when expecting an expression", (char) lexer->current_token());
@@ -206,7 +206,7 @@ PrototypeNode *
 Parser::parse_prototype() {
     std::string func_name;
 
-    if ( lexer->current_token() == Token::IDENTIFIER ) {
+    if ( lexer->current_token() == (int)Token::IDENTIFIER ) {
         func_name = lexer->identifier();
         lexer->next();
     }
@@ -219,7 +219,7 @@ Parser::parse_prototype() {
 
     lexer->next();
 
-    while ( lexer->current_token() == Token::IDENTIFIER ) {
+    while ( lexer->current_token() == (int)Token::IDENTIFIER ) {
         arg_names.push_back(lexer->identifier());
         lexer->next();
     }
@@ -272,7 +272,7 @@ Parser::parse_if() {
     ASTNode *condition = parse_expression();
     if ( ! condition ) { return 0; }
 
-    if ( lexer->current_token() != Token::THEN ) {
+    if ( lexer->current_token() != (int)Token::THEN ) {
         return Error("expected 'then'");
     }
 
@@ -281,7 +281,7 @@ Parser::parse_if() {
     ASTNode *then = parse_expression();
     if ( ! then ) { return 0; }
 
-    if ( lexer->current_token() != Token::ELSE ) {
+    if ( lexer->current_token() != (int)Token::ELSE ) {
         return Error("expected 'else'");
     }
 
@@ -297,7 +297,7 @@ ASTNode *
 Parser::parse_for() {
     lexer->next();
 
-    if ( lexer->current_token() != Token::IDENTIFIER ) {
+    if ( lexer->current_token() != (int)Token::IDENTIFIER ) {
         return Error("expected identifier after 'for'");
     }
 
@@ -327,7 +327,7 @@ Parser::parse_for() {
         if ( step == 0 ) { return 0; }
     }
 
-    if ( lexer->current_token() != Token::IN ) {
+    if ( lexer->current_token() != (int)Token::IN ) {
         return Error("Expected 'in' after 'for'");
     }
     lexer->next();
