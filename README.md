@@ -41,11 +41,43 @@ new features like
 Next up will be finding a way to use [lambdas](http://msdn.microsoft.com/en-us/library/dd293603.aspx) in a nice way, since
 they're rad as hell.
 
+### Design
+
+#### layout
+Wherever possible, classes are in their own respective .cc files with
+matching headers.  For example, there's a header-and-implementation
+pair for each of the abstract syntax tree nodes under [src/ast](https://github.com/wglass/kscope/tree/master/src/ast/)
+
+#### AST/Codegen decoupling
+
+The IR codegen parts of the system have been entirely decoupled from
+the AST.  Each node class has a codegen method like before, but an
+IRRenderer class is passed in, and it's this class that provides all
+of the llvm-specific context and helper methods for generating LLVM IR.
+
+At some point in the future I'll probably write separate renderers for
+other formats, like having the AST pretty-printed on the screen or something.
+
+#### Bison/Flex for parsing/lexing
+
+Instead of an ad-hoc parser that uses getchar() all over the place and
+is tightly coupled to everything else there's now a separate parsing subsystem
+with a lexer.ll file for token/lexer state and grammar.yy with a distilled,
+purestrain Backus-Naur Form grammar.  The parser and lexer are abstracted
+into an STree (syntax tree) class that can parse an input stream and set
+its root node to the result of the parsing.
+
+This simplifies the main.cpp REPL stuff immensely, std::cin is given to
+the STree in chunks and the root node has it's IR rendered with an IRRenderer.
+In the future it will probably be updated to abstract the REPL stuff somewhere
+else and allow for file-reading depending on how ```kscope``` is invoked.
+
+
 ### Style
 
 CamelCase and pascalCase are used for class names but that's about it.
 Everything else adheres to an underscore style.  I guess this isn't
-normally how c++ is done but I like it more so there.
+normally how c++ is done but underscore-style is superior so there.
 
 ## Building ##
 
