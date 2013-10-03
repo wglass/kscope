@@ -63,7 +63,7 @@ other formats, like having the AST pretty-printed on the screen or something.
 Instead of an ad-hoc parser that uses getchar() all over the place and
 is tightly coupled to everything else there's now a separate parsing subsystem
 with a lexer.ll file for token/lexer state and grammar.yy with a distilled,
-purestrain Backus-Naur Form grammar.  The parser and lexer are abstracted
+purestrain [Backus-Naur Form](http://en.wikipedia.org/wiki/Backus–Naur_Form) grammar.  The parser and lexer are abstracted
 into an STree (syntax tree) class that can parse an input stream and set
 its root node to the result of the parsing.
 
