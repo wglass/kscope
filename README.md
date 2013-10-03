@@ -44,16 +44,23 @@ they're rad as hell.
 ### Style
 
 CamelCase and pascalCase are used for class names but that's about it.
-Evertyhing else adheres to an underscore style.  I guess this isn't
+Everything else adheres to an underscore style.  I guess this isn't
 normally how c++ is done but I like it more so there.
 
 ## Building ##
 
 ###Requirements:
+  * cmake
   * LLVM
   * bison >= 3.0
   * flex
 
+NOTE: Installing llvm via homebrew didn't quite do it for me, doesn't seem to install the proper cmake
+helper stuff so you gotta install from source.  It's a fairly painless procedure though:
+
+http://llvm.org/docs/CMake.html
+
+Source for 3.3 (the version I've been using) is here: http://llvm.org/releases/download.html#3.3
 ###to build:
 ```
 mkdir build && cd build
