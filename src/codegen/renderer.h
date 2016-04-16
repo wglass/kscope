@@ -5,7 +5,7 @@
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Module.h"
-#include "llvm/PassManager.h"
+#include "llvm/IR/LegacyPassManager.h"
 
 #include <map>
 #include <string>
@@ -17,7 +17,7 @@ using ::std::unique_ptr;
 using ::llvm::AllocaInst;
 using ::llvm::ExecutionEngine;
 using ::llvm::Function;
-using ::llvm::FunctionPassManager;
+using ::llvm::legacy::FunctionPassManager;
 using ::llvm::IRBuilder;
 using ::llvm::LLVMContext;
 using ::llvm::Module;
@@ -27,7 +27,7 @@ class IRRenderer {
     map<string, AllocaInst*> named_values;
 
     IRRenderer(const IRRenderer &other);
-    IRRenderer(Module *module);
+    IRRenderer(unique_ptr<Module> module);
     IRRenderer(IRRenderer &&other);
 
     IRRenderer &operator =(IRRenderer other);
