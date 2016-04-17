@@ -17,10 +17,7 @@ class VariableNode;
 template <class Result>
 class Renderer {
  public:
-  Renderer<Result>();
-  virtual ~Renderer();
-
-  virtual Result* render(ASTNode *node);
+  virtual Result* render(ASTNode *node) = 0;
 
   virtual Result* render(BinaryNode *node) = 0;
   virtual Result* render(CallNode *node) = 0;

@@ -16,6 +16,6 @@ public:
     : var_name(var_name), start(start), end(end), step(step), body(body) {};
 
   template<class Result> Result* render(Renderer<Result> *renderer) {
-    renderer->render(this);
+    return renderer->render(this);
   }
 };

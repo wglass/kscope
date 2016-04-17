@@ -10,5 +10,5 @@ public:
   std::string name;
 
   VariableNode(const std::string &name) : name(name) {};
-  const std::string getName() const;
+  const std::string getName() const { return name; };
 };
