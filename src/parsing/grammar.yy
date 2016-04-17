@@ -8,15 +8,26 @@
 %define api.namespace {bison}
 
 %code requires{
-    #include "ast.h"
-    #include "tree.h"
+    #include "ast/ASTNode.h"
+    #include "ast/BinaryNode.h"
+    #include "ast/CallNode.h"
+    #include "ast/ForNode.h"
+    #include "ast/FunctionNode.h"
+    #include "ast/IfNode.h"
+    #include "ast/NumberNode.h"
+    #include "ast/PrototypeNode.h"
+    #include "ast/UnaryNode.h"
+    #include "ast/VarNode.h"
+    #include "ast/VariableNode.h"
+
+    #include "ASTree.h"
 
     class Lexer;
-    class STree;
+    class ASTree;
 }
 
 %param { Lexer &lexer }
-%parse-param { STree &tree }
+%parse-param { ASTree &tree }
 
 %code{
 static int yylex(bison::Parser::semantic_type *yylval,

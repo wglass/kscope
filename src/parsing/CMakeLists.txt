@@ -14,7 +14,7 @@ ADD_FLEX_BISON_DEPENDENCY(lexer parser)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 set(PARSING_SOURCES
-    tree.cc
+    ASTree.cc
     lexer.cc)
 
 add_library(parsing
