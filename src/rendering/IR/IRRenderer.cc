@@ -1,3 +1,7 @@
+#include "IRRenderer.h"
+
+#include "ast/ASTNode.h"
+
 #include "llvm/ExecutionEngine/ExecutionEngine.h"
 #include "llvm/IR/DataLayout.h"
 #include "llvm/IR/DerivedTypes.h"
@@ -11,9 +15,6 @@
 #include "llvm/Transforms/Scalar.h"
 
 #include <string>
-
-#include "ast/ASTNode.h"
-#include "IRRenderer.h"
 
 
 using ::llvm::AllocaInst;
@@ -29,64 +30,38 @@ using ::llvm::Module;
 using ::llvm::Type;
 
 
-IRRenderer::IRRenderer()
-  : IRRenderer(std::unique_ptr<Module>(new Module("my cool jit", llvm::getGlobalContext()))) { }
+IRRenderer::IRRenderer(std::unique_ptr<ORCPipeline> pipeline)
+  : pipeline(pipeline),
+    llvm_context(llvm::getGlobalContext()),
+    target_machine(llvm::EngineBuilder().selectTarget()) {}
 
 IRRenderer::IRRenderer(const IRRenderer &other)
     : IRRenderer(CloneModule(other.module.get())) {}
 
-IRRenderer::IRRenderer(std::unique_ptr<Module> module) {
-  auto ebuilder = std::make_unique<EngineBuilder>();
-
-  ebuilder->setEngineKind(llvm::EngineKind::JIT);
-  engine = std::unique_ptr<ExecutionEngine>(ebuilder->create());
-  builder = std::make_unique<IRBuilder<> >(module->getContext());
-  pass_manager = std::make_unique<FunctionPassManager>(module.get());
-
-  // pass_manager->add(new DataLayout(engine->getDataLayout()));
-
-  // pass_manager->add(llvm::createBasicAliasAnalysisPass());
-
-  pass_manager->add(llvm::createPromoteMemoryToRegisterPass());
-  pass_manager->add(llvm::createInstructionCombiningPass());
-  pass_manager->add(llvm::createReassociatePass());
-  pass_manager->add(llvm::createGVNPass());
-  pass_manager->add(llvm::createCFGSimplificationPass());
-
-  pass_manager->doInitialization();
-}
-
 IRRenderer::IRRenderer(IRRenderer &&other) {
-    engine = std::move(other.engine);
-    builder = std::move(other.builder);
-    pass_manager = std::move(other.pass_manager);
-    other.module = nullptr;
-    other.engine = nullptr;
-    other.builder = nullptr;
-    other.pass_manager = nullptr;
+  pipeine = std::move(other.pipeline);
+  render_context = std::move(other.render_context);
+  target_machine = std::move(other.target_machine);
+  llvm_context = other.llvm_context;
 }
 
 IRRenderer &
 IRRenderer::operator =(IRRenderer other) {
-    std::swap(engine, other.engine);
-    std::swap(builder, other.builder);
-    std::swap(pass_manager, other.pass_manager);
+    std::swap(pipeline, other.pipeline);
+    std::swap(render_context, other.render_context);
+    std::swap(target_machine, other.target_machine);
     return *this;
 }
 
 IRRenderer::~IRRenderer() {
-    pass_manager.reset();
-    builder.reset();
-    engine.reset();
+  pipeline.release();
+  render_context.release();
 }
 
 llvm::Value *
 IRRenderer::render(ASTNode *node) {
   return node->render<llvm::Value>(this);
 }
-
-llvm::LLVMContext &
-IRRenderer::llvm_context() { return llvm::getGlobalContext(); }
 
 llvm::AllocaInst *
 IRRenderer::get_named_value (const std::string &name){

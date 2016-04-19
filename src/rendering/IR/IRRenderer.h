@@ -1,54 +1,34 @@
 #pragma once
 
-#include "llvm/ExecutionEngine/ExecutionEngine.h"
-#include "llvm/IR/Function.h"
-#include "llvm/IR/IRBuilder.h"
-#include "llvm/IR/Instructions.h"
-#include "llvm/IR/Module.h"
-#include "llvm/IR/LegacyPassManager.h"
-
 #include "rendering/Renderer.h"
+
+#include "IRRenderContext.h"
+#include "ORCPipelines/ORCPipeline.h"
+
+#include "llvm/IR/Function.h"
+#include "llvm/IR/Instructions.h"
 
 #include <map>
 #include <string>
 
-using ::llvm::AllocaInst;
-using ::llvm::ExecutionEngine;
-using ::llvm::Function;
-using ::llvm::legacy::FunctionPassManager;
-using ::llvm::IRBuilder;
-using ::llvm::LLVMContext;
-using ::llvm::Module;
-
 
 class IRRenderer : public Renderer<llvm::Value> {
-  std::map<std::string, AllocaInst*> named_values;
-
-  IRRenderer(const IRRenderer &other);
-  IRRenderer(std::unique_ptr<Module> module);
-  IRRenderer(IRRenderer &&other);
-
-  IRRenderer &operator =(IRRenderer other);
 
 public:
-  IRRenderer();
+  IRRenderer(std::unique_ptr<ORCPipeline> pipeline);
   ~IRRenderer();
 
-  std::unique_ptr<Module> module;
-  std::unique_ptr<ExecutionEngine> engine;
-  std::unique_ptr<IRBuilder<> > builder;
-  std::unique_ptr<FunctionPassManager> pass_manager;
+  llvm::LLVMContext & get_llvm_context();
+  IRRenderContext & get_render_context();
 
-  LLVMContext &llvm_context();
-
-  AllocaInst *get_named_value(const std::string &name);
+  llvm::AllocaInst *get_named_value(const std::string &name);
   void set_named_value(const std::string &name, AllocaInst* value);
   void clear_named_value(const std::string &name);
   void clear_all_named_values();
 
-  AllocaInst *create_entry_block_alloca(Function *func,
-                                        const std::string &name);
-  void create_argument_allocas(Function *func,
+  llvm::AllocaInst *create_entry_block_alloca(llvm::Function *func,
+                                              const std::string &name);
+  void create_argument_allocas(llvm::Function *func,
                                const std::vector<std::string> &args);
 
   llvm::Value *render(ASTNode *node);
@@ -63,4 +43,18 @@ public:
   llvm::Value *render(UnaryNode *node);
   llvm::Value *render(VarNode *node);
   llvm::Value *render(VariableNode *node);
+
+private:
+  IRRenderer(const IRRenderer &other);
+  IRRenderer(IRRenderer &&other);
+
+  IRRenderer &operator =(IRRenderer other);
+
+  std::unique_ptr<ORCPipeline> pipeline;
+  std::unique_ptr<IRRenderContext> render_context;
+
+  llvm::LLVMContext llvm_context;
+  std::unique_ptr<llvm::TargetMachine> target_machine;
+
+  std::map<std::string, llvm::AllocaInst*> named_values;
 };
