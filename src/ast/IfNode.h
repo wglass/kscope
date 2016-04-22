@@ -5,10 +5,14 @@
 
 class IfNode : public ASTNode {
 public:
-  ASTNode *condition;
-  ASTNode *then;
-  ASTNode *_else;
+  std::unique_ptr<ASTNode> condition;
+  std::unique_ptr<ASTNode> then;
+  std::unique_ptr<ASTNode> _else;
 
-  IfNode(ASTNode *cond, ASTNode *then, ASTNode *_else)
-    : condition(cond), then(then), _else(_else) {};
+  IfNode(std::unique_ptr<ASTNode> cond,
+         std::unique_ptr<ASTNode> then,
+         std::unique_ptr<ASTNode> _else)
+    : condition(std::move(cond)),
+      then(std::move(then)),
+      _else(std::move(_else)) {};
 };

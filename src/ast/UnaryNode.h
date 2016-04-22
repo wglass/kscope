@@ -6,7 +6,8 @@
 class UnaryNode : public ASTNode {
 public:
   char opcode;
-  ASTNode *operand;
+  std::unique_ptr<ASTNode> operand;
 
-  UnaryNode(char opcode, ASTNode *operand) : opcode(opcode), operand(operand) {};
+  UnaryNode(char opcode, std::unique_ptr<ASTNode> operand)
+    : opcode(opcode), operand(std::move(operand)) {};
 };

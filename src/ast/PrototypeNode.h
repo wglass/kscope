@@ -9,8 +9,9 @@
 class PrototypeNode : public ASTNode {
 public:
   std::string name;
-  std::vector<std::string> args;
+  std::unique_ptr<std::vector<std::string> > args;
 
-  PrototypeNode(const std::string &name, const std::vector<std::string> &args)
-    : name(name), args(args) {};
+  PrototypeNode(const std::string &name,
+                std::unique_ptr<std::vector<std::string> > args)
+    : name(name), args(std::move(args)) {};
 };

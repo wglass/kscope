@@ -24,6 +24,9 @@
 
     class Lexer;
     class ASTree;
+
+    typedef std::vector<std::unique_ptr<ASTNode>> NodeVector;
+    typedef std::pair<std::string, std::unique_ptr<ASTNode>> NodePair;
 }
 
 %param { Lexer &lexer }
@@ -35,21 +38,25 @@ static int yylex(bison::Parser::semantic_type *yylval,
 }
 
 %union {
-    std::string *str;
-    ASTNode *node;
-    PrototypeNode *proto;
-    FunctionNode *func;
     double num;
     char chr;
-    std::vector<std::string> *strs;
-    std::vector<ASTNode*> *nodes;
-    std::pair<std::string, ASTNode*> *declr;
-    std::vector<std::pair<std::string, ASTNode*> > *declrs;
+
+    std::string * str;
+    std::unique_ptr<ASTNode> node;
+    std::unique_ptr<PrototypeNode> proto;
+    std::unique_ptr<FunctionNode> func;
+    std::unique_ptr<std::vector<std::string>> strs;
+    std::unique_ptr<NodeVector> nodes;
+    std::unique_ptr<NodePair> declr;
+    std::unique_ptr<std::vector<NodePair>> declrs;
 }
 
 %destructor {
+    if ($$)  { $$.release(); }
+} <node> <proto> <func> <strs> <nodes> <declr> <declrs>
+%destructor {
     if ($$)  { delete ($$); ($$) = nullptr; }
-} <str> <node> <proto> <func> <strs>
+} <str>
 
 %define api.token.prefix {}
 
@@ -93,11 +100,11 @@ static int yylex(bison::Parser::semantic_type *yylval,
 %start top;
 
 top :
-  definition END { tree.set_root($1); }
-| extern END { tree.set_root($1); }
+  definition END { tree.set_root(std::move($1)); }
+| extern END { tree.set_root(std::move($1)); }
 | expr END {
-    PrototypeNode *proto = new PrototypeNode("", std::vector<std::string>());
-    tree.set_root(new FunctionNode(proto, $1));
+    auto proto = std::make_unique<PrototypeNode>("", std::vector<std::string>());
+    tree.set_root(std::make_unique<FunctionNode>(proto, $1));
 }
 
 expr :
@@ -108,13 +115,13 @@ expr :
 | var_declare
 | variable
 | number_literal
-| "(" expr ")" { $$ = $2; }
+| "(" expr ")" { $$ = std::move($2); }
 
 variable:
-  IDENTIFIER { $$ = new VariableNode(*$1); }
+  IDENTIFIER { $$ = std::make_unique<VariableNode>(*$1); }
 
 number_literal :
-  NUMBER { $$ = new NumberNode($1); }
+  NUMBER { $$ = std::make_unique<NumberNode>($1); }
 
 %left "=";
 %left ">" "<";
@@ -122,52 +129,52 @@ number_literal :
 %left "*" "/";
 
 binary_op :
-  expr "=" expr { $$ = new BinaryNode($2, $1, $3); }
-| expr "+" expr { $$ = new BinaryNode($2, $1, $3); }
-| expr "-" expr { $$ = new BinaryNode($2, $1, $3); }
-| expr "*" expr { $$ = new BinaryNode($2, $1, $3); }
-| expr "/" expr { $$ = new BinaryNode($2, $1, $3); }
-| expr "<" expr { $$ = new BinaryNode($2, $1, $3); }
-| expr ">" expr { $$ = new BinaryNode($2, $1, $3); }
+  expr "=" expr { $$ = std::make_unique<BinaryNode>(std::move($2), $1, std::move($3)); }
+| expr "+" expr { $$ = std::make_unique<BinaryNode>(std::move($2), $1, std::move($3)); }
+| expr "-" expr { $$ = std::make_unique<BinaryNode>(std::move($2), $1, std::move($3)); }
+| expr "*" expr { $$ = std::make_unique<BinaryNode>(std::move($2), $1, std::move($3)); }
+| expr "/" expr { $$ = std::make_unique<BinaryNode>(std::move($2), $1, std::move($3)); }
+| expr "<" expr { $$ = std::make_unique<BinaryNode>(std::move($2), $1, std::move($3)); }
+| expr ">" expr { $$ = std::make_unique<BinaryNode>(std::move($2), $1, std::move($3)); }
 
 call :
 IDENTIFIER "(" call_args ")" {
-  $$ = new CallNode(*$1, *$3);
+  $$ = std::make_unique<CallNode>(*$1, std::move($3));
 }
 
 call_args :
-  { $$ = new std::vector<ASTNode*>(); }
+  { $$ = std::make_unique<NodeVector>(); }
 | call_args "," expr {
-    $$ = $1;
-    $$->push_back($3);
+    $$ = std::move($1);
+    $$->push_back(std::move($3));
   }
 | expr {
-    $$ = new std::vector<ASTNode*>();
-    $$->push_back($1);
+    $$ = std::make_unique<NodeVector>();
+    $$->push_back(std::move($1));
   }
 
 extern :
-"extern" prototype { $$ = $2; }
+"extern" prototype { $$ = std::move($2); }
 
 definition :
 "def" prototype expr {
-    $$ = new FunctionNode($2, $3);
+    $$ = std::make_unique<FunctionNode>(std::move($2), std::move($3));
 }
 
 prototype :
 IDENTIFIER "(" arg_names ")" {
-    $$ = new PrototypeNode(*$1, *$3);
+    $$ = std::make_unique<PrototypeNode>(*$1, std::move($3));
 }
 
 arg_names:
-  { $$ = new std::vector<std::string>(); }
+  { $$ = std::make_unique<std::vector<std::string>>(); }
 | arg_names "," IDENTIFIER {
-    $$ = $1;
-    $$->push_back(*$3);
+    $$ = std::move($1);
+    $$->push_back($3);
   }
 | IDENTIFIER {
-    $$ = new std::vector<std::string>();
-    $$->push_back(*$1);
+    $$ = std::make_unique<std::vector<std::string>>();
+    $$->push_back($1);
   }
 
 %left "else" "then";
@@ -175,43 +182,43 @@ arg_names:
 
 if_then :
   "if" expr "then" expr "else" expr {
-    $$ = new IfNode($2, $4, $6);
+    $$ = std::make_unique<IfNode>(std::move($2), std::move($4), std::move($6));
   }
 
 for_loop :
   "for" IDENTIFIER "=" expr "," expr "in" expr {
-    $$ = new ForNode(*$2, $4, $6, 0, $8);
+    $$ = std::make_unique<ForNode>(*$2, std::move($4), std::move($6), nullptr, std::move($8));
   }
 | "for" IDENTIFIER "=" expr "," expr "," expr "in" expr {
-    $$ = new ForNode(*$2, $4, $6, $8, $10);
+    $$ = std::make_unique<ForNode>(*$2, std::move($4), std::move($6), std::move($8), std::move($10));
   }
 
 
 var_declare :
   "var" declarations "in" expr {
-    $$ = new VarNode(*$2, $4);
+    $$ = std::make_unique<VarNode>(std::move($2), std::move($4));
   }
 
 declarations :
   {
-    $$ = new std::vector<std::pair<std::string, ASTNode*> >();
+    $$ = std::make_unique<std::vector<NodePair>>();
   }
 | declarations "," declaration {
-    $$ = $1;
-    $$->push_back(*$3);
+    $$ = std::move($1);
+    $$->push_back(std::move($3));
   }
 | declaration {
-    $$ = new std::vector<std::pair<std::string, ASTNode*> >();
-    $$->push_back(*$1);
+    $$ = std::make_unique<std::vector<NodePair>>();
+    $$->push_back(std::move($1));
   }
 
 
 declaration :
   IDENTIFIER "=" expr {
-    $$ = new std::pair<std::string, ASTNode*>(*$1, $3);
+    $$ = std::make_unique<NodePair>($1, std::move($3));
   }
 | IDENTIFIER {
-    $$ = new std::pair<std::string, ASTNode*>(*$1, 0);
+    $$ = std::make_unique<NodePair>($1, nullptr);
   }
 
 %%

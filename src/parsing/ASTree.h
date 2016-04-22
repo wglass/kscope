@@ -17,6 +17,6 @@ public:
 
   void parse(std::istream &input);
 
-  void set_root(FunctionNode *node);
-  void set_root(PrototypeNode *node);
+  void set_root(std::unique_ptr<FunctionNode> node);
+  void set_root(std::unique_ptr<PrototypeNode> node);
 };

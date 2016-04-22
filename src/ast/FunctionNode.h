@@ -6,9 +6,11 @@
 
 class FunctionNode : public ASTNode {
 public:
-  PrototypeNode *proto;
-  ASTNode *body;
+  std::unique_ptr<PrototypeNode> proto;
+  std::unique_ptr<ASTNode> body;
 
-  FunctionNode(PrototypeNode *proto, ASTNode *body)
-    : proto(proto), body(body) {};
+  FunctionNode(std::unique_ptr<PrototypeNode> proto,
+               std::unique_ptr<ASTNode> body)
+    : proto(std::move(proto)), body(std::move(body)) {};
+
 };

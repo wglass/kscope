@@ -8,10 +8,10 @@
 
 class VarNode : public ASTNode {
 public:
-  std::vector<std::pair<std::string, ASTNode*> > var_names;
-  ASTNode *body;
+  std::unique_ptr<std::vector<NodePair> > var_names;
+  std::unique_ptr<ASTNode> body;
 
-  VarNode(const std::vector<std::pair<std::string, ASTNode*> > &var_names,
-          ASTNode *body)
-    : var_names(var_names), body(body) {};
+  VarNode(std::unique_ptr<std::vector<NodePair> > var_names,
+          std::unique_ptr<ASTNode> body)
+    : var_names(std::move(var_names)), body(std::move(body)) {};
 };

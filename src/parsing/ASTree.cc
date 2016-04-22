@@ -37,11 +37,11 @@ ASTree::parse(std::istream &input) {
 }
 
 void
-ASTree::set_root(FunctionNode *node) {
-    root = std::unique_ptr<ASTNode>(node);
+ASTree::set_root(std::unique_ptr<FunctionNode> node) {
+  root = std::move(node);
 }
 
 void
-ASTree::set_root(PrototypeNode *node) {
-    root = std::unique_ptr<ASTNode>(node);
+ASTree::set_root(std::unique_ptr<PrototypeNode> node) {
+  root = std::move(node);
 }
