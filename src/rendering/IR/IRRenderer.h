@@ -4,7 +4,8 @@
 
 #include "parsing/ASTree.h"
 
-#include "IRRenderContext.h"
+#include "IRRenderSpec.h"
+#include "IRContext.h"
 #include "ORCPipeline/LazyORCPipeline.h"
 
 #include "llvm/IR/Function.h"
@@ -15,7 +16,7 @@
 #include <string>
 
 
-class IRRenderer : public Renderer<llvm::Value, llvm::orc::TargetAddress> {
+class IRRenderer : public Renderer<IRRenderSpec> {
 
 public:
   typedef std::vector<std::unique_ptr<llvm::Module>> ModuleSet;
@@ -23,10 +24,7 @@ public:
   IRRenderer();
   ~IRRenderer();
 
-  llvm::LLVMContext & get_llvm_context();
-  IRRenderContext & get_render_context();
-
-  llvm::TargetMachine & get_target_machine();
+  IRContext & get_render_context();
 
   llvm::orc::TargetAddress get_function(const std::string &name);
   LazyORCPipeline::ModuleHandle flush_modules();
@@ -55,12 +53,7 @@ private:
   IRRenderer &operator =(IRRenderer other);
 
   std::unique_ptr<LazyORCPipeline> pipeline;
-  std::unique_ptr<IRRenderContext> render_context;
-
-  llvm::LLVMContext &llvm_context;
-  std::unique_ptr<llvm::TargetMachine> target_machine;
+  std::unique_ptr<IRContext> render_context;
 
   ModuleSet pending_modules;
-
-  std::map<std::string, std::unique_ptr<FunctionNode>> unrendered_functions;
 };

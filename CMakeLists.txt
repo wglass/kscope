@@ -21,6 +21,6 @@ link_directories( ${LLVM_LIBRARY_DIRS} )
 
 set(CMAKE_BUILD_TYPE Debug)
 
-llvm_map_components_to_libnames(REQ_LLVM_LIBRARIES core support mcjit native)
+llvm_map_components_to_libnames(REQ_LLVM_LIBRARIES core support mcjit native orcjit)
 
 add_subdirectory(src)

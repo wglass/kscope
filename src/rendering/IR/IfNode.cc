@@ -14,6 +14,7 @@
 llvm::Value *
 IRRenderer::render(IfNode *node) {
   auto &context = get_render_context();
+  auto &llvm_context = context.get_llvm_context();
   auto &builder = context.get_builder();
 
   auto zero = llvm::ConstantFP::get(llvm_context, llvm::APFloat(0.0));

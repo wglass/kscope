@@ -9,10 +9,10 @@
 #include <string>
 
 
-class IRRenderContext {
+class IRContext {
 public:
-  IRRenderContext(llvm::LLVMContext & llvm_context);
-  ~IRRenderContext();
+  IRContext();
+  ~IRContext();
 
   llvm::LLVMContext & get_llvm_context();
   llvm::Module & get_module();
@@ -33,12 +33,12 @@ public:
                                const std::vector<std::string> &args);
 
 private:
-  IRRenderContext(llvm::LLVMContext &llvm_context,
+  IRContext(llvm::LLVMContext &llvm_context,
                   std::unique_ptr<llvm::Module> module);
-  IRRenderContext(const IRRenderContext &other) = delete;
-  IRRenderContext(IRRenderContext &&other);
+  IRContext(const IRContext &other) = delete;
+  IRContext(IRContext &&other);
 
-  IRRenderContext &operator =(IRRenderContext other) = delete;
+  IRContext &operator =(IRContext other) = delete;
 
   llvm::LLVMContext &llvm_context;
 

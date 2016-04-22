@@ -25,7 +25,7 @@ IRRenderer::render_function(FunctionNode *node) {
   llvm::Function *func = render(node->proto);
   if ( func == 0 ) { return nullptr; }
 
-  llvm::BasicBlock *block = llvm::BasicBlock::Create(llvm_context,
+  llvm::BasicBlock *block = llvm::BasicBlock::Create(context.get_llvm_context(),
                                                      "entry",
                                                      func);
   builder.SetInsertPoint(block);

@@ -12,7 +12,7 @@ public:
   VariableNode(const std::string &name) : name(name) {};
   const std::string getName() const { return name; };
 
-  template<class Result, typename Function> Result* render(Renderer<Result, Function> *renderer) {
+  template<class RenderSpec> typename RenderSpec::Result* render(Renderer<RenderSpec> *renderer) {
     return renderer->render(this);
   };
 };

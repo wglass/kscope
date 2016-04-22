@@ -14,7 +14,7 @@ public:
   CallNode(const std::string &callee, std::vector<ASTNode*> &args)
     : callee(callee), args(args) {};
 
-  template<class Result, typename Function> Result* render(Renderer<Result, Function> *renderer) {
+  template<class RenderSpec> typename RenderSpec::Result* render(Renderer<RenderSpec> *renderer) {
     return renderer->render(this);
   };
 };

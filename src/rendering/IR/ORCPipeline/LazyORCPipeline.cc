@@ -25,7 +25,7 @@ static void handle_address_error() {
 
 LazyORCPipeline::LazyORCPipeline(IRRenderer *renderer)
   : ORCPipeline<EmitLayer>::ORCPipeline(renderer),
-    compile_layer(object_layer, llvm::orc::SimpleCompiler(renderer->get_target_machine())),
+    compile_layer(object_layer, llvm::orc::SimpleCompiler(*target_machine)),
     emit_layer(compile_layer),
     compile_callbacks((reinterpret_cast<uintptr_t>(handle_address_error))) {}
 

@@ -15,7 +15,7 @@ public:
           ASTNode *body)
     : var_name(var_name), start(start), end(end), step(step), body(body) {};
 
-  template<class Result, typename Function> Result* render(Renderer<Result, Function> *renderer) {
+  template<class RenderSpec> typename RenderSpec::Result* render(Renderer<RenderSpec> *renderer) {
     return renderer->render(this);
   };
 };

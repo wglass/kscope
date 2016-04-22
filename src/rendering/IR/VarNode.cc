@@ -17,6 +17,7 @@
 llvm::Value *
 IRRenderer::render(VarNode *node) {
   auto &context = get_render_context();
+  auto &llvm_context = context.get_llvm_context();
   auto &builder = context.get_builder();
 
   std::vector<llvm::AllocaInst *> old_bindings;

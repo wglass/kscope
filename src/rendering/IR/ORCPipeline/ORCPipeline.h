@@ -25,16 +25,17 @@ public:
 
   ORCPipeline(IRRenderer *renderer)
     : renderer(renderer),
-      data_layout(llvm::EngineBuilder().selectTarget()->createDataLayout()) {}
+      target_machine(llvm::EngineBuilder().selectTarget()),
+      data_layout(target_machine->createDataLayout()) {}
 
   virtual void add_function(FunctionNode *node) = 0;
 
   ModuleHandle add_modules(ModuleSet modules);
   void remove_modules(ModuleHandle handle);
 
-  llvm::orc::JITSymbol find_symbol(const std::string &name);
-  llvm::orc::JITSymbol find_symbol_in(ModuleHandle handle,
-                                      const std::string &name);
+  virtual llvm::orc::JITSymbol find_symbol(const std::string &name) = 0;
+  virtual llvm::orc::JITSymbol find_symbol_in(ModuleHandle handle,
+                                              const std::string &name) = 0;
 
   std::string mangle(const std::string &name) {
     std::string mangled_name;
@@ -54,7 +55,8 @@ public:
   }
 
   IRRenderer *renderer;
-private:
+  std::unique_ptr<llvm::TargetMachine> target_machine;
 
+private:
   const llvm::DataLayout data_layout;
 };

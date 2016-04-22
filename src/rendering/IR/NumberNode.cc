@@ -9,5 +9,8 @@
 
 llvm::Value *
 IRRenderer::render(NumberNode *node) {
-    return llvm::ConstantFP::get(llvm_context, llvm::APFloat(node->val));
+  auto &context = get_render_context();
+  auto &llvm_context = context.get_llvm_context();
+
+  return llvm::ConstantFP::get(llvm_context, llvm::APFloat(node->val));
 }

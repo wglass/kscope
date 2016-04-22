@@ -14,6 +14,7 @@
 llvm::Function *
 IRRenderer::render(PrototypeNode *node) {
   auto &context = get_render_context();
+  auto &llvm_context = context.get_llvm_context();
   auto &module = context.get_module();
 
   auto double_type = llvm::Type::getDoubleTy(llvm_context);

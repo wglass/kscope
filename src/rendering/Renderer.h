@@ -17,24 +17,24 @@ class VarNode;
 class VariableNode;
 
 
-template <class RenderResult, typename Function>
+template <class RenderSpec>
 class Renderer {
  public:
   virtual void render(std::shared_ptr<ASTree> tree) = 0;
 
-  virtual Function get_function(const std::string &name) = 0;
+  virtual typename RenderSpec::FuncRepresentation get_function(const std::string &name) = 0;
 
-  virtual RenderResult* render(ASTNode *node) = 0;
+  virtual typename RenderSpec::Result* render(ASTNode *node) = 0;
 
   virtual void render(FunctionNode *node) = 0;
 
-  virtual RenderResult* render(BinaryNode *node) = 0;
-  virtual RenderResult* render(CallNode *node) = 0;
-  virtual RenderResult* render(ForNode *node) = 0;
-  virtual RenderResult* render(IfNode *node) = 0;
-  virtual RenderResult* render(NumberNode *node) = 0;
-  virtual RenderResult* render(PrototypeNode *node) = 0;
-  virtual RenderResult* render(UnaryNode *node) = 0;
-  virtual RenderResult* render(VarNode *node) = 0;
-  virtual RenderResult* render(VariableNode *node) = 0;
+  virtual typename RenderSpec::Result* render(BinaryNode *node) = 0;
+  virtual typename RenderSpec::Result* render(CallNode *node) = 0;
+  virtual typename RenderSpec::Result* render(ForNode *node) = 0;
+  virtual typename RenderSpec::Result* render(IfNode *node) = 0;
+  virtual typename RenderSpec::Result* render(NumberNode *node) = 0;
+  virtual typename RenderSpec::Result* render(PrototypeNode *node) = 0;
+  virtual typename RenderSpec::Result* render(UnaryNode *node) = 0;
+  virtual typename RenderSpec::Result* render(VarNode *node) = 0;
+  virtual typename RenderSpec::Result* render(VariableNode *node) = 0;
 };

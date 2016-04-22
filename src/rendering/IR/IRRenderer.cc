@@ -1,6 +1,7 @@
 #include "IRRenderer.h"
 
-#include "IRRenderContext.h"
+#include "IRContext.h"
+#include "IRRenderSpec.h"
 #include "ORCPipeline/LazyORCPipeline.h"
 #include "ast/ASTNode.h"
 
@@ -14,22 +15,19 @@
 
 IRRenderer::IRRenderer()
   : pipeline(std::make_unique<LazyORCPipeline>(this)),
-    llvm_context(llvm::getGlobalContext()),
-    target_machine(llvm::EngineBuilder().selectTarget()),
     pending_modules(IRRenderer::ModuleSet()) {
 }
 
-IRRenderer::IRRenderer(IRRenderer &&other)
-  : llvm_context(llvm::getGlobalContext()) {
-  pipeline = std::move(other.pipeline);
+IRRenderer::IRRenderer(IRRenderer &&other) {
   render_context = std::move(other.render_context);
+  pipeline = std::move(other.pipeline);
   pending_modules = std::move(other.pending_modules);
 }
 
 IRRenderer &
 IRRenderer::operator =(IRRenderer other) {
-    std::swap(pipeline, other.pipeline);
     std::swap(render_context, other.render_context);
+    std::swap(pipeline, other.pipeline);
     std::swap(pending_modules, other.pending_modules);
     return *this;
 }
@@ -39,15 +37,9 @@ IRRenderer::~IRRenderer() {
   render_context.release();
 }
 
-llvm::TargetMachine &
-IRRenderer::get_target_machine() {
-  return *target_machine;
-}
-
 void
 IRRenderer::render(std::shared_ptr<ASTree> tree) {
   render(tree->root.get());
-
   pending_modules.push_back(render_context->give_up_module());
 }
 
@@ -61,13 +53,13 @@ IRRenderer::get_function(const std::string &name) {
 
 llvm::Value *
 IRRenderer::render(ASTNode *node) {
-  return node->render<llvm::Value>(this);
+  return node->render<IRRenderSpec>(this);
 }
 
-IRRenderContext &
+IRContext &
 IRRenderer::get_render_context() {
   if ( ! render_context || ! render_context->has_module() ) {
-    render_context = std::make_unique<IRRenderContext>(llvm_context);
+    render_context = std::make_unique<IRContext>();
   }
 
   return *render_context;

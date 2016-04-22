@@ -37,7 +37,7 @@ IRRenderer::render(BinaryNode *node) {
 
   if (left == 0 || right == 0 ) { return nullptr; }
 
-  llvm::Type *llvm_double_type = llvm::Type::getDoubleTy(llvm_context);
+  llvm::Type *llvm_double_type = llvm::Type::getDoubleTy(context.get_llvm_context());
 
   switch (node->op) {
   case '+': return builder.CreateFAdd(left, right, "addtmp");
