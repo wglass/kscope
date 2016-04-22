@@ -18,7 +18,7 @@ public:
       start(std::move(start)), end(std::move(end)),
       step(std::move(step)), body(std::move(body)) {};
 
-  template<class Result> Result* render(Renderer<Result> *renderer) {
+  template<class Result, typename Function> Result* render(Renderer<Result, Function> *renderer) {
     return renderer->render(this);
-  }
+  };
 };

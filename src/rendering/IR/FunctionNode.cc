@@ -1,37 +1,48 @@
+#include "IRRenderer.h"
+
+#include "ast/FunctionNode.h"
+
 #include "llvm/IR/Verifier.h"
 #include "llvm/IR/BasicBlock.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Value.h"
 
-#include "ast/FunctionNode.h"
 
-#include "IRRenderer.h"
+void
+IRRenderer::render(FunctionNode *node) {
+  pipeline->add_function(node);
+}
 
 
 llvm::Function *
-IRRenderer::render(FunctionNode *node) {
-    clear_all_named_values();
+IRRenderer::render_function(FunctionNode *node) {
+  auto &context = get_render_context();
+  auto &builder = context.get_builder();
+  auto &pass_manager = context.get_pass_manager();
 
-    llvm::Function *func = render(node->proto);
-    if ( func == 0 ) { return 0; }
+  context.clear_all_named_values();
 
-    llvm::BasicBlock *block = llvm::BasicBlock::Create(llvm_context(),
-                                                       "entry",
-                                                       func);
-    builder->SetInsertPoint(block);
+  llvm::Function *func = render(node->proto);
+  if ( func == 0 ) { return nullptr; }
 
-    create_argument_allocas(func, node->proto->args);
+  llvm::BasicBlock *block = llvm::BasicBlock::Create(llvm_context,
+                                                     "entry",
+                                                     func);
+  builder.SetInsertPoint(block);
 
-    if ( llvm::Value *retval = render(node->body) ) {
-        builder->CreateRet(retval);
-        llvm::verifyFunction(*func);
+  context.create_argument_allocas(func, node->proto->args);
 
-        pass_manager->run(*func);
+  llvm::Value *retval = render(node->body);
 
-        return func;
-    }
-
+  if ( ! retval ) {
     func->eraseFromParent();
-
     return nullptr;
+  }
+
+  builder.CreateRet(retval);
+  llvm::verifyFunction(*func);
+
+  pass_manager.run(*func);
+
+  return func;
 }

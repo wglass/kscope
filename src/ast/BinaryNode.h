@@ -4,8 +4,6 @@
 
 #include "ASTNode.h"
 
-template<class Result> class Renderer;
-
 
 class BinaryNode : public ASTNode {
 public:
@@ -15,7 +13,7 @@ public:
   BinaryNode(char op, std::unique_ptr<ASTNode> lhs, std::unique_ptr<ASTNode> rhs)
     : op(op), lhs(std::move(lhs)), rhs(std::move(rhs)) {};
 
-  template<class Result> Result* render(Renderer<Result> *renderer) {
-    renderer->render(this);
-  }
+  template<class Result, typename Function> Result* render(Renderer<Result, Function> *renderer) {
+    return renderer->render(this);
+  };
 };

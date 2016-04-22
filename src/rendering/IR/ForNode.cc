@@ -1,3 +1,7 @@
+#include "IRRenderer.h"
+
+#include "ast/ForNode.h"
+
 #include "llvm/ADT/APFloat.h"
 #include "llvm/IR/BasicBlock.h"
 #include "llvm/IR/Constants.h"
@@ -6,73 +10,64 @@
 #include "llvm/IR/Value.h"
 #include "llvm/IR/Type.h"
 
-#include "ast/ForNode.h"
-
-#include "IRRenderer.h"
-
-
-using ::llvm::AllocaInst;
-using ::llvm::APFloat;
-using ::llvm::BasicBlock;
-using ::llvm::Constant;
-using ::llvm::ConstantFP;
-using ::llvm::Function;
-using ::llvm::Value;
-using ::llvm::Type;
-
 
 llvm::Value *
 IRRenderer::render(ForNode *node) {
-    Function *func = builder->GetInsertBlock()->getParent();
+  auto &context = get_render_context();
+  auto &builder = context.get_builder();
 
-    AllocaInst *alloca = create_entry_block_alloca(func, node->var_name);
+  auto one = llvm::ConstantFP::get(llvm_context, llvm::APFloat(1.0));
+  auto zero = llvm::ConstantFP::get(llvm_context, llvm::APFloat(0.0));
 
-    Value *start_value = render(node->start);
-    if ( start_value == 0 ) { return 0; }
+  llvm::Function *func = builder.GetInsertBlock()->getParent();
 
-    builder->CreateStore(start_value, alloca);
+  llvm::AllocaInst *alloca = context.create_entry_block_alloca(func,
+                                                               node->var_name);
 
-    BasicBlock *loop_block = BasicBlock::Create(llvm_context(), "loop", func);
+  llvm::Value *start_value = render(node->start);
+  if ( start_value == 0 ) { return nullptr; }
 
-    builder->CreateBr(loop_block);
-    builder->SetInsertPoint(loop_block);
+  builder.CreateStore(start_value, alloca);
 
-    AllocaInst *old_value = get_named_value(node->var_name);
-    set_named_value(node->var_name, alloca);
+  llvm::BasicBlock *loop_block = llvm::BasicBlock::Create(llvm_context,
+                                                          "loop", func);
 
-    if ( render(node->body) == 0 ) { return 0; }
+  builder.CreateBr(loop_block);
+  builder.SetInsertPoint(loop_block);
 
-    Value *step_value;
-    if ( node->step ) {
-      step_value = render(node->step);
-        if ( step_value == 0 ) { return 0; }
-    } else {
-        step_value = ConstantFP::get(llvm_context(), APFloat(1.0));
-    }
+  llvm::AllocaInst *old_value = context.get_named_value(node->var_name);
+  context.set_named_value(node->var_name, alloca);
 
-    Value *end_condition = render(node->end);
-    if ( end_condition == 0 ) { return 0; }
+  if ( render(node->body) == 0 ) { return nullptr; }
 
-    Value *current_var = builder->CreateLoad(alloca, node->var_name.c_str());
-    Value *next_var = builder->CreateFAdd(current_var, step_value, "nextvar");
-    builder->CreateStore(next_var, alloca);
+  llvm::Value *step_value;
+  if ( node->step ) {
+    step_value = render(node->step);
+    if ( step_value == 0 ) { return nullptr; }
+  } else {
+    step_value = one;
+  }
 
-    end_condition = builder->CreateFCmpONE(
-        end_condition,
-        ConstantFP::get(llvm_context(), APFloat(0.0)),
-        "loopcond"
-    );
+  llvm::Value *end_condition = render(node->end);
+  if ( end_condition == 0 ) { return nullptr; }
 
-    BasicBlock *after_block = BasicBlock::Create(llvm_context(), "afterloop", func);
+  llvm::Value *current_var = builder.CreateLoad(alloca, node->var_name.c_str());
+  llvm::Value *next_var = builder.CreateFAdd(current_var, step_value, "nextvar");
+  builder.CreateStore(next_var, alloca);
 
-    builder->CreateCondBr(end_condition, loop_block, after_block);
-    builder->SetInsertPoint(after_block);
+  end_condition = builder.CreateFCmpONE(end_condition, zero, "loopcond");
 
-    if ( old_value ) {
-        set_named_value(node->var_name, old_value);
-    } else {
-        clear_named_value(node->var_name);
-    }
+  llvm::BasicBlock *after_block = llvm::BasicBlock::Create(llvm_context,
+                                                           "afterloop", func);
 
-    return Constant::getNullValue(Type::getDoubleTy(llvm_context()));
+  builder.CreateCondBr(end_condition, loop_block, after_block);
+  builder.SetInsertPoint(after_block);
+
+  if ( old_value ) {
+    context.set_named_value(node->var_name, old_value);
+  } else {
+    context.clear_named_value(node->var_name);
+  }
+
+  return llvm::Constant::getNullValue(llvm::Type::getDoubleTy(llvm_context));
 }

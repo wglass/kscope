@@ -1,6 +1,9 @@
 #pragma once
 
+#include <string>
+#include <cstdint>
 
+class ASTree;
 class ASTNode;
 class BinaryNode;
 class CallNode;
@@ -14,19 +17,24 @@ class VarNode;
 class VariableNode;
 
 
-template <class Result>
+template <class RenderResult, typename Function>
 class Renderer {
  public:
-  virtual Result* render(ASTNode *node) = 0;
+  virtual void render(std::shared_ptr<ASTree> tree) = 0;
 
-  virtual Result* render(BinaryNode *node) = 0;
-  virtual Result* render(CallNode *node) = 0;
-  virtual Result* render(ForNode *node) = 0;
-  virtual Result* render(FunctionNode *node) = 0;
-  virtual Result* render(IfNode *node) = 0;
-  virtual Result* render(NumberNode *node) = 0;
-  virtual Result* render(PrototypeNode *node) = 0;
-  virtual Result* render(UnaryNode *node) = 0;
-  virtual Result* render(VarNode *node) = 0;
-  virtual Result* render(VariableNode *node) = 0;
+  virtual Function get_function(const std::string &name) = 0;
+
+  virtual RenderResult* render(ASTNode *node) = 0;
+
+  virtual void render(FunctionNode *node) = 0;
+
+  virtual RenderResult* render(BinaryNode *node) = 0;
+  virtual RenderResult* render(CallNode *node) = 0;
+  virtual RenderResult* render(ForNode *node) = 0;
+  virtual RenderResult* render(IfNode *node) = 0;
+  virtual RenderResult* render(NumberNode *node) = 0;
+  virtual RenderResult* render(PrototypeNode *node) = 0;
+  virtual RenderResult* render(UnaryNode *node) = 0;
+  virtual RenderResult* render(VarNode *node) = 0;
+  virtual RenderResult* render(VariableNode *node) = 0;
 };

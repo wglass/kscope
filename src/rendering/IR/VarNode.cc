@@ -1,3 +1,8 @@
+#include "IRRenderer.h"
+
+#include "ast/ASTNode.h"
+#include "ast/VarNode.h"
+
 #include "llvm/ADT/APFloat.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/Function.h"
@@ -8,50 +13,45 @@
 #include <string>
 #include <vector>
 
-#include "ast/ASTNode.h"
-#include "ast/VarNode.h"
-
-#include "IRRenderer.h"
-
-
-using ::llvm::AllocaInst;
-using ::llvm::APFloat;
-using ::llvm::ConstantFP;
-
 
 llvm::Value *
 IRRenderer::render(VarNode *node) {
-    std::vector<AllocaInst *> old_bindings;
+  auto &context = get_render_context();
+  auto &builder = context.get_builder();
 
-    llvm::Function *func = builder->GetInsertBlock()->getParent();
+  std::vector<llvm::AllocaInst *> old_bindings;
 
-    for ( auto &var_pair : node->var_names) {
-        const std::string &var_name = var_pair.first;
-        ASTNode *init = var_pair.second;
+  auto zero = llvm::ConstantFP::get(llvm_context, llvm::APFloat(0.0));
 
-        llvm::Value *init_val;
-        if ( init ) {
-          init_val = render(init);
-            if ( init_val == 0) { return 0; }
-        } else {
-            init_val = ConstantFP::get(llvm_context(), APFloat(0.0));
-        }
+  llvm::Function *func = builder.GetInsertBlock()->getParent();
 
-        AllocaInst *alloca = create_entry_block_alloca(func, var_name);
-        builder->CreateStore(init_val, alloca);
+  for ( auto &var_pair : node->var_names ) {
+    const std::string &var_name = var_pair.first;
+    ASTNode *init = var_pair.second;
 
-        old_bindings.push_back(get_named_value(var_name));
-        set_named_value(var_name, alloca);
+    llvm::Value *init_val;
+    if ( init ) {
+      init_val = render(init);
+      if ( init_val == 0 ) { return nullptr; }
+    } else {
+      init_val = zero;
     }
 
-    llvm::Value *body_val = render(node->body);
-    if ( body_val == 0 ) { return 0; }
+    llvm::AllocaInst *alloca = context.create_entry_block_alloca(func, var_name);
+    builder.CreateStore(init_val, alloca);
 
-    std::size_t index = 0;
-    for ( auto &var_pair : node->var_names) {
-        set_named_value(var_pair.first, old_bindings[index]);
-        ++index;
-    }
+    old_bindings.push_back(context.get_named_value(var_name));
+    context.set_named_value(var_name, alloca);
+  }
 
-    return body_val;
+  llvm::Value *body_val = render(node->body);
+  if ( body_val == 0 ) { return nullptr; }
+
+  std::size_t index = 0;
+  for ( auto &var_pair : node->var_names ) {
+    context.set_named_value(var_pair.first, old_bindings[index]);
+    ++index;
+  }
+
+  return body_val;
 }

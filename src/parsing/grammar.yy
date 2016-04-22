@@ -1,4 +1,4 @@
-%skeleton "lalr1.cc"
+%skeleton "./bison_skeleton.cc"
 %require "3.0"
 
 %verbose

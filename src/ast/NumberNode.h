@@ -7,7 +7,11 @@
 
 class NumberNode : public ASTNode {
 public:
-    double val;
+  double val;
 
   NumberNode(double val) : val(val) {};
+
+  template<class Result, typename Function> Result* render(Renderer<Result, Function> *renderer) {
+    return renderer->render(this);
+  };
 };

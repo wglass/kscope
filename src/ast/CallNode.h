@@ -15,7 +15,7 @@ public:
            std::unique_ptr<std::vector<std::unique_ptr<ASTNode> > > args)
     : callee(callee), args(std::move(args)) {};
 
-  template<class Result> Result* render(Renderer<Result> *renderer) {
-    renderer->render(this);
-  }
+  template<class Result, typename Function> Result* render(Renderer<Result, Function> *renderer) {
+    return renderer->render(this);
+  };
 };

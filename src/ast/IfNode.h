@@ -15,4 +15,8 @@ public:
     : condition(std::move(cond)),
       then(std::move(then)),
       _else(std::move(_else)) {};
+
+  template<class Result, typename Function> Result* render(Renderer<Result, Function> *renderer) {
+    return renderer->render(this);
+  };
 };
