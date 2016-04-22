@@ -4,8 +4,6 @@
 
 #include "ASTNode.h"
 
-template<class Result> class Renderer;
-
 
 class BinaryNode : public ASTNode {
 public:
@@ -15,7 +13,7 @@ public:
   BinaryNode(char op, ASTNode *lhs, ASTNode *rhs)
   : op(op), lhs(lhs), rhs(rhs) {};
 
-  template<class Result> Result* render(Renderer<Result> *renderer) {
-    renderer->render(this);
-  }
+  template<class Result, typename Function> Result* render(Renderer<Result, Function> *renderer) {
+    return renderer->render(this);
+  };
 };

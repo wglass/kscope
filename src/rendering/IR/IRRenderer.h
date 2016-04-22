@@ -2,59 +2,65 @@
 
 #include "rendering/Renderer.h"
 
+#include "parsing/ASTree.h"
+
 #include "IRRenderContext.h"
-#include "ORCPipelines/ORCPipeline.h"
+#include "ORCPipeline/LazyORCPipeline.h"
 
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instructions.h"
+#include "llvm/ExecutionEngine/Orc/JITSymbol.h"
 
 #include <map>
 #include <string>
 
 
-class IRRenderer : public Renderer<llvm::Value> {
+class IRRenderer : public Renderer<llvm::Value, llvm::orc::TargetAddress> {
 
 public:
-  IRRenderer(std::unique_ptr<ORCPipeline> pipeline);
+  typedef std::vector<std::unique_ptr<llvm::Module>> ModuleSet;
+
+  IRRenderer();
   ~IRRenderer();
 
   llvm::LLVMContext & get_llvm_context();
   IRRenderContext & get_render_context();
 
-  llvm::AllocaInst *get_named_value(const std::string &name);
-  void set_named_value(const std::string &name, AllocaInst* value);
-  void clear_named_value(const std::string &name);
-  void clear_all_named_values();
+  llvm::TargetMachine & get_target_machine();
 
-  llvm::AllocaInst *create_entry_block_alloca(llvm::Function *func,
-                                              const std::string &name);
-  void create_argument_allocas(llvm::Function *func,
-                               const std::vector<std::string> &args);
+  llvm::orc::TargetAddress get_function(const std::string &name);
+  LazyORCPipeline::ModuleHandle flush_modules();
+
+  void render(std::shared_ptr<ASTree> tree);
 
   llvm::Value *render(ASTNode *node);
 
+  void render(FunctionNode *node);
+  llvm::Function *render_function(FunctionNode *node);
+
+  llvm::Function *render(PrototypeNode *node);
   llvm::Value *render(BinaryNode *node);
   llvm::Value *render(CallNode *node);
   llvm::Value *render(ForNode *node);
-  llvm::Function *render(FunctionNode *node);
   llvm::Value *render(IfNode *node);
   llvm::Value *render(NumberNode *node);
-  llvm::Function *render(PrototypeNode *node);
   llvm::Value *render(UnaryNode *node);
   llvm::Value *render(VarNode *node);
   llvm::Value *render(VariableNode *node);
 
 private:
-  IRRenderer(const IRRenderer &other);
+  IRRenderer(const IRRenderer &other) = delete;
   IRRenderer(IRRenderer &&other);
 
   IRRenderer &operator =(IRRenderer other);
 
-  std::unique_ptr<ORCPipeline> pipeline;
+  std::unique_ptr<LazyORCPipeline> pipeline;
   std::unique_ptr<IRRenderContext> render_context;
 
-  llvm::LLVMContext llvm_context;
+  llvm::LLVMContext &llvm_context;
   std::unique_ptr<llvm::TargetMachine> target_machine;
 
-  std::map<std::string, llvm::AllocaInst*> named_values;
+  ModuleSet pending_modules;
+
+  std::map<std::string, std::unique_ptr<FunctionNode>> unrendered_functions;
 };

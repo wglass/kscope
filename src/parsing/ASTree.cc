@@ -12,7 +12,6 @@ ASTree::ASTree() : root(nullptr) {}
 
 ASTree::ASTree(ASTree &&other) {
     root = std::move(other.root);
-    other.root = nullptr;
 }
 
 ASTree &
@@ -22,7 +21,7 @@ ASTree::operator =(ASTree other) {
 }
 
 ASTree::~ASTree() {
-    root.reset();
+    root.release();
 }
 
 void
@@ -32,7 +31,6 @@ ASTree::parse(std::istream &input) {
     Lexer lexer = Lexer(&input);
     bison::Parser *parser = new bison::Parser(lexer,
                                               *this);
-
     parser->parse();
 }
 

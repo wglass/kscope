@@ -1,39 +1,60 @@
-#include "FullyLazyORCPipeline.h"
+#include "LazyORCPipeline.h"
 
 #include "ast/FunctionNode.h"
+#include "rendering/IR/IRRenderer.h"
 
 #include "llvm/ExecutionEngine/Orc/IRCompileLayer.h"
 #include "llvm/ExecutionEngine/Orc/LazyEmittingLayer.h"
 #include "llvm/ExecutionEngine/Orc/ObjectLinkingLayer.h"
 #include "llvm/ExecutionEngine/Orc/IndirectionUtils.h"
+#include "llvm/ExecutionEngine/Orc/LambdaResolver.h"
+#include "llvm/ExecutionEngine/Orc/CompileUtils.h"
 #include "llvm/ExecutionEngine/SectionMemoryManager.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/GlobalValue.h"
 
+#include <functional>
 #include <string>
 
 
-JITSymbol
-FullyLazyORCPipeline::find_symbol(const std::string &name) {
-  emit_layer.findSymbol(name, false);
+static void handle_address_error() {
+  fprintf(stderr, "Address error in compile callback!");
+  exit(1);
 }
 
-JITSymbol
-FullyLazyORCPipeline::find_symbol_in(FullyLazyModuleHandle handle,
-                                   const std::string &name) {
-  emit_layer.findSymbolIn(handle, name, false);
+LazyORCPipeline::LazyORCPipeline(IRRenderer *renderer)
+  : ORCPipeline<EmitLayer>::ORCPipeline(renderer),
+    compile_layer(object_layer, llvm::orc::SimpleCompiler(renderer->get_target_machine())),
+    emit_layer(compile_layer),
+    compile_callbacks((reinterpret_cast<uintptr_t>(handle_address_error))) {}
+
+llvm::orc::JITSymbol
+LazyORCPipeline::find_symbol(const std::string &name) {
+  return emit_layer.findSymbol(name, false);
 }
 
-FullyLazyModuleHandle
-FullyLazyORCPipeline::add_modules(std::vector<llvm::Module *> modules) {
+llvm::orc::JITSymbol
+LazyORCPipeline::find_symbol_in(LazyORCPipeline::ModuleHandle handle,
+                                const std::string &name) {
+  return emit_layer.findSymbolIn(handle, name, false);
+}
+
+void
+LazyORCPipeline::add_function(FunctionNode *node) {
+  functions[mangle(node->proto->name)] = node;
+}
+
+LazyORCPipeline::ModuleHandle
+LazyORCPipeline::add_modules(LazyORCPipeline::ModuleSet modules) {
   // We need a memory manager to allocate memory and resolve symbols for this
   // new module. Create one that resolves symbols by looking back into the
   // JIT.
-  auto resolver = createLambdaResolver(
+  auto resolver = llvm::orc::createLambdaResolver(
     [&](const std::string &name) {
       if (auto symbol = find_symbol(name)) {
-        return RuntimeDyld::SymbolInfo(symbol.getAddress(), symbol.getFlags());
+        return llvm::RuntimeDyld::SymbolInfo(symbol.getAddress(),
+                                             symbol.getFlags());
       } else {
         return search_functions(name);
       }
@@ -43,38 +64,35 @@ FullyLazyORCPipeline::add_modules(std::vector<llvm::Module *> modules) {
     }
   );
 
-  return emit_layer.addModuleSet(modules,
-                                 make_unique<SectionMemoryManager>(),
+  return emit_layer.addModuleSet(std::move(modules),
+                                 std::make_unique<llvm::SectionMemoryManager>(),
                                  std::move(resolver));
 }
 
 void
-FullyLazyORCPipeline::remove_module(FullyLazyModuleHandle handle) {
+LazyORCPipeline::remove_modules(LazyORCPipeline::ModuleHandle handle) {
   emit_layer.removeModuleSet(handle);
 }
 
-RuntimeDyld::SymbolInfo
-FullyLazyORCPipeline::search_functions(const std::string &name) {
+llvm::RuntimeDyld::SymbolInfo
+LazyORCPipeline::search_functions(const std::string &name) {
   auto iter = functions.find(name);
   if (iter == functions.end()) {
       return nullptr;
   }
 
-  auto function_node = std::move(iter->second);
+  auto function_node = iter->second;
   functions.erase(iter);
 
-  auto handle = generate_stub(std::move(function_node));
+  auto handle = generate_stub(function_node);
   auto symbol = find_symbol_in(handle, name);
 
-  return RuntimeDyld::SymbolInfo(symbol.getAddress(), symbol.getFlags());
+  return llvm::RuntimeDyld::SymbolInfo(symbol.getAddress(), symbol.getFlags());
 }
 
-FullyLazyModuleHandle
-FullyLazyORCPipeline::generate_stub(std::unique_ptr<FunctionNode> node) {
-  // Step 1) IRGen a prototype for the stub. This will have the same type as
-  //         the function.
-  IRGenContext C(Session);
-  llvm::Function *func = render(node->proto);
+LazyORCPipeline::ModuleHandle
+LazyORCPipeline::generate_stub(FunctionNode *node) {
+  llvm::Function *func = renderer->render(node->proto);
 
   // Step 2) Get a compile callback that can be used to compile the body of
   //         the function. The resulting CallbackInfo type will let us set the
@@ -87,16 +105,16 @@ FullyLazyORCPipeline::generate_stub(std::unique_ptr<FunctionNode> node) {
   //         pointer for the indirection to point at the trampoline.
   std::string body_ptr_name = (func->getName() + "$address").str();
   llvm::GlobalVariable *body_ptr =
-    createImplPointer(*func->getType(),
-                      *func->getParent(),
-                      body_ptr_name,
-                      createIRTypedAddress(*func->getFunctionType(),
-                                           CallbackInfo.getAddress()));
+    llvm::orc::createImplPointer(*func->getType(),
+                                 *func->getParent(),
+                                 body_ptr_name,
+                                 llvm::orc::createIRTypedAddress(*func->getFunctionType(),
+                                                                 callback_info.getAddress()));
 
-  makeStub(*func, *body_ptr);
+  llvm::orc::makeStub(*func, *body_ptr);
 
   // Step 4) Add the module containing the stub to the JIT.
-  auto stub = add_module(C.takeM());
+  auto stub = renderer->flush_modules();
 
   // Step 5) Set the compile and update actions.
   //
@@ -108,13 +126,12 @@ FullyLazyORCPipeline::generate_stub(std::unique_ptr<FunctionNode> node) {
   //
   //   The update action will update body_ptr to point at the newly
   // compiled function.
-  std::shared_ptr<FunctionNode> shared_node = std::move(node);
 
   callback_info.setCompileAction(
-    [this, shared_node, body_ptr_name, stub]() {
-      auto module = render_func_to_module(*shared_node);
-      auto handle = add_module(module);
-      auto BodySym = find_unmangled_symbol_in(handle, shared_node->proto->name);
+    [this, node, body_ptr_name, stub]() {
+      renderer->render_function(node);
+      auto handle = renderer->flush_modules();
+      auto BodySym = find_unmangled_symbol_in(handle, node->proto->name);
       auto BodyPtrSym = find_unmangled_symbol_in(stub, body_ptr_name);
 
       auto BodyAddr = BodySym.getAddress();
@@ -128,15 +145,4 @@ FullyLazyORCPipeline::generate_stub(std::unique_ptr<FunctionNode> node) {
   );
 
   return stub;
-}
-
-std::unique_ptr<llvm::Module>
-FullyLazyORCPipeline::render_func_to_module(const FunctionNode &node) {
-  IRGenContext C(S);
-  auto function = render(node);
-  if (!function) {
-    return nullptr;
-  }
-
-  return C.takeM()
 }

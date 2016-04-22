@@ -1,12 +1,12 @@
-// #include "llvm/ExecutionEngine/JIT.h"
+#include "parsing/ASTree.h"
+#include "rendering/IR/IRRenderer.h"
+
 #include "llvm/Support/TargetSelect.h"
+#include "llvm/IR/Function.h"
 
 #include <iostream>
 #include <sstream>
 #include <string>
-
-#include "parsing/ASTree.h"
-#include "rendering/IR/IRRenderer.h"
 
 
 int main() {
@@ -14,27 +14,26 @@ int main() {
 
     IRRenderer *renderer = new IRRenderer();
 
-    std::unique_ptr<ASTree> tree = std::make_unique<ASTree>();
+    std::shared_ptr<ASTree> tree = std::make_shared<ASTree>();
 
     std::string input;
-    fprintf(stderr, "ready> ");
+    fprintf(stderr, "kscope> ");
     while (std::getline(std::cin, input, ';')) {
         std::istringstream iss(input);
 
         tree->parse(iss);
         if ( tree->root != 0 ) {
-          if ( Function *func = static_cast<Function*>(renderer->render(tree->root.get())) ) {
-                if ( func->getName() == "" ) {
-                    void *func_ptr = renderer->engine->getPointerToFunction(func);
-                    double (*func_pointer)() = (double(*)())(intptr_t)func_ptr;
-                    fprintf(stderr, "Evaluated to: %f\n", func_pointer());
-                }
-            }
-        }
-        fprintf(stderr, "ready> ");
-    }
+          renderer->render(tree);
 
-    renderer->module->dump();
+          if ( FunctionNode *func_node = static_cast<FunctionNode*>(tree->root.get()) ) {
+            auto func_ptr = renderer->get_function(func_node->proto->name);
+            double (*func_pointer)() = (double(*)())(intptr_t)func_ptr;
+            fprintf(stderr, "Evaluated to: %f\n", func_pointer());
+          }
+        }
+
+        fprintf(stderr, "kscope> ");
+    }
 
     return 0;
 }
