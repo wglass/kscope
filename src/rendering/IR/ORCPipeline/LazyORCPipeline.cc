@@ -92,7 +92,7 @@ LazyORCPipeline::search_functions(const std::string &name) {
 
 LazyORCPipeline::ModuleHandle
 LazyORCPipeline::generate_stub(FunctionNode *node) {
-  llvm::Function *func = renderer->render(node->proto);
+  llvm::Function *func = renderer->render_node(node->proto);
 
   // Step 2) Get a compile callback that can be used to compile the body of
   //         the function. The resulting CallbackInfo type will let us set the
@@ -129,7 +129,7 @@ LazyORCPipeline::generate_stub(FunctionNode *node) {
 
   callback_info.setCompileAction(
     [this, node, body_ptr_name, stub]() {
-      renderer->render_function(node);
+      renderer->render_node(node);
       auto handle = renderer->flush_modules();
       auto BodySym = find_unmangled_symbol_in(handle, node->proto->name);
       auto BodyPtrSym = find_unmangled_symbol_in(stub, body_ptr_name);

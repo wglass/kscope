@@ -9,7 +9,7 @@
 
 
 llvm::Value *
-IRRenderer::render(BinaryNode *node) {
+IRRenderer::render_node(BinaryNode *node) {
   auto &context = get_render_context();
   auto &builder = context.get_builder();
 

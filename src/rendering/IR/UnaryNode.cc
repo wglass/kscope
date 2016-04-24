@@ -8,7 +8,7 @@
 
 
 llvm::Value *
-IRRenderer::render(UnaryNode *node) {
+IRRenderer::render_node(UnaryNode *node) {
   auto &context = get_render_context();
   auto &module = context.get_module();
   auto &builder = context.get_builder();

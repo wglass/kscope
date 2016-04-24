@@ -8,9 +8,10 @@
 #include "llvm/IR/Value.h"
 
 
-void
-IRRenderer::render(FunctionNode *node) {
+llvm::Function *
+IRRenderer::render_node(FunctionNode *node) {
   pipeline->add_function(node);
+  return nullptr;
 }
 
 
@@ -22,7 +23,7 @@ IRRenderer::render_function(FunctionNode *node) {
 
   context.clear_all_named_values();
 
-  llvm::Function *func = render(node->proto);
+  llvm::Function *func = render_node(node->proto);
   if ( func == 0 ) { return nullptr; }
 
   llvm::BasicBlock *block = llvm::BasicBlock::Create(context.get_llvm_context(),

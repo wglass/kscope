@@ -7,7 +7,7 @@
 
 
 llvm::Value *
-IRRenderer::render(VariableNode *node) {
+IRRenderer::render_node(VariableNode *node) {
   auto &context = get_render_context();
 
   llvm::Value *val = context.get_named_value(node->name);

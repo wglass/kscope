@@ -12,7 +12,7 @@
 
 
 llvm::Value *
-IRRenderer::render(ForNode *node) {
+IRRenderer::render_node(ForNode *node) {
   auto &context = get_render_context();
   auto &llvm_context = context.get_llvm_context();
   auto &builder = context.get_builder();

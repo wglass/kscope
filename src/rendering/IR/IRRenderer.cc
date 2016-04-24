@@ -38,7 +38,7 @@ IRRenderer::~IRRenderer() {
 }
 
 void
-IRRenderer::render(std::shared_ptr<ASTree> tree) {
+IRRenderer::render_tree(std::shared_ptr<ASTree> tree) {
   render(tree->root.get());
   pending_modules.push_back(render_context->give_up_module());
 }
@@ -49,11 +49,6 @@ IRRenderer::get_function(const std::string &name) {
 
   auto symbol = pipeline->find_unmangled_symbol(name);
   return symbol.getAddress();
-}
-
-llvm::Value *
-IRRenderer::render(ASTNode *node) {
-  return node->render<IRRenderSpec>(this);
 }
 
 IRContext &

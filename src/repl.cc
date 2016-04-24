@@ -23,7 +23,7 @@ int main() {
 
         tree->parse(iss);
         if ( tree->root != 0 ) {
-          renderer->render(tree);
+          renderer->render_tree(tree);
 
           if ( FunctionNode *func_node = static_cast<FunctionNode*>(tree->root.get()) ) {
             auto func_ptr = renderer->get_function(func_node->proto->name);

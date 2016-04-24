@@ -16,7 +16,7 @@
 #include <string>
 
 
-class IRRenderer : public Renderer<IRRenderSpec> {
+class IRRenderer : public Renderer<IRRenderer, IRRenderSpec> {
 
 public:
   typedef std::vector<std::unique_ptr<llvm::Module>> ModuleSet;
@@ -26,31 +26,29 @@ public:
 
   IRContext & get_render_context();
 
+  void render_tree(std::shared_ptr<ASTree> tree);
+
   llvm::orc::TargetAddress get_function(const std::string &name);
   LazyORCPipeline::ModuleHandle flush_modules();
 
-  void render(std::shared_ptr<ASTree> tree);
-
-  llvm::Value *render(ASTNode *node);
-
-  void render(FunctionNode *node);
   llvm::Function *render_function(FunctionNode *node);
-
-  llvm::Function *render(PrototypeNode *node);
-  llvm::Value *render(BinaryNode *node);
-  llvm::Value *render(CallNode *node);
-  llvm::Value *render(ForNode *node);
-  llvm::Value *render(IfNode *node);
-  llvm::Value *render(NumberNode *node);
-  llvm::Value *render(UnaryNode *node);
-  llvm::Value *render(VarNode *node);
-  llvm::Value *render(VariableNode *node);
+  llvm::Function *render_node(FunctionNode *node);
+  llvm::Function *render_node(PrototypeNode *node);
 
 private:
   IRRenderer(const IRRenderer &other) = delete;
   IRRenderer(IRRenderer &&other);
 
   IRRenderer &operator =(IRRenderer other);
+
+  llvm::Value *render_node(BinaryNode *node);
+  llvm::Value *render_node(CallNode *node);
+  llvm::Value *render_node(ForNode *node);
+  llvm::Value *render_node(IfNode *node);
+  llvm::Value *render_node(NumberNode *node);
+  llvm::Value *render_node(UnaryNode *node);
+  llvm::Value *render_node(VarNode *node);
+  llvm::Value *render_node(VariableNode *node);
 
   std::unique_ptr<LazyORCPipeline> pipeline;
   std::unique_ptr<IRContext> render_context;
