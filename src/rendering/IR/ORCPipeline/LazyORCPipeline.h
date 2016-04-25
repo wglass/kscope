@@ -2,8 +2,6 @@
 
 #include "ORCPipeline.h"
 
-#include "ast/FunctionNode.h"
-
 #include "llvm/ExecutionEngine/Orc/IRCompileLayer.h"
 #include "llvm/ExecutionEngine/Orc/LazyEmittingLayer.h"
 #include "llvm/ExecutionEngine/Orc/ObjectLinkingLayer.h"
@@ -13,6 +11,9 @@
 #include "llvm/ExecutionEngine/Orc/JITSymbol.h"
 #include "llvm/ExecutionEngine/RuntimeDyld.h"
 #include "llvm/IR/Module.h"
+
+
+struct FunctionNode;
 
 
 typedef llvm::orc::ObjectLinkingLayer<> ObjectLayer;

@@ -39,8 +39,10 @@ IRRenderer::~IRRenderer() {
 
 void
 IRRenderer::render_tree(std::shared_ptr<ASTree> tree) {
+  auto &context = get_render_context();
+
   render(tree->root.get());
-  pending_modules.push_back(render_context->give_up_module());
+  pending_modules.push_back(context.give_up_module());
 }
 
 llvm::orc::TargetAddress

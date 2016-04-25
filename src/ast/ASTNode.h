@@ -4,7 +4,10 @@
 #include <string>
 
 
-class ASTNode {
-public:
+class IRRenderer;
+
+struct ASTNode {
   virtual ~ASTNode() {};
+
+  virtual void *render(IRRenderer *renderer) = 0;
 };

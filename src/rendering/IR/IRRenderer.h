@@ -35,12 +35,6 @@ public:
   llvm::Function *render_node(FunctionNode *node);
   llvm::Function *render_node(PrototypeNode *node);
 
-private:
-  IRRenderer(const IRRenderer &other) = delete;
-  IRRenderer(IRRenderer &&other);
-
-  IRRenderer &operator =(IRRenderer other);
-
   llvm::Value *render_node(BinaryNode *node);
   llvm::Value *render_node(CallNode *node);
   llvm::Value *render_node(ForNode *node);
@@ -49,6 +43,12 @@ private:
   llvm::Value *render_node(UnaryNode *node);
   llvm::Value *render_node(VarNode *node);
   llvm::Value *render_node(VariableNode *node);
+
+private:
+  IRRenderer(const IRRenderer &other) = delete;
+  IRRenderer(IRRenderer &&other);
+
+  IRRenderer &operator =(IRRenderer other);
 
   std::unique_ptr<LazyORCPipeline> pipeline;
   std::unique_ptr<IRContext> render_context;

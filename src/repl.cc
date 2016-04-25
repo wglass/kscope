@@ -1,3 +1,4 @@
+#include "ast/FunctionNode.h"
 #include "parsing/ASTree.h"
 #include "rendering/IR/IRRenderer.h"
 
@@ -26,9 +27,16 @@ int main() {
           renderer->render_tree(tree);
 
           if ( FunctionNode *func_node = static_cast<FunctionNode*>(tree->root.get()) ) {
+            fprintf(stderr, "Getting function %s\n", func_node->proto->name.c_str());
             auto func_ptr = renderer->get_function(func_node->proto->name);
             double (*func_pointer)() = (double(*)())(intptr_t)func_ptr;
-            fprintf(stderr, "Evaluated to: %f\n", func_pointer());
+            if ( func_pointer ) {
+              fprintf(stderr, "Evaluated to: %f\n", func_pointer());
+            } else {
+              fprintf(stderr, "Pointer was null!\n");
+            }
+          } else {
+            fprintf(stderr, "Cast to function node didn't work\n");
           }
         }
 

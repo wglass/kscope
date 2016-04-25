@@ -1,8 +1,10 @@
 #pragma once
 
 #include "ast/ASTNode.h"
-#include "ast/FunctionNode.h"
-#include "ast/PrototypeNode.h"
+
+
+struct FunctionNode;
+struct PrototypeNode;
 
 
 class ASTree {

@@ -7,6 +7,8 @@
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Value.h"
 
+#include <iostream>
+
 
 llvm::Function *
 IRRenderer::render_node(FunctionNode *node) {
@@ -44,6 +46,9 @@ IRRenderer::render_function(FunctionNode *node) {
   llvm::verifyFunction(*func);
 
   pass_manager.run(*func);
+
+  fprintf(stderr, "Read function definition.");
+  func->dump();
 
   return func;
 }

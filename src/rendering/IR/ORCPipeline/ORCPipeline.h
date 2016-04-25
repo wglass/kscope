@@ -1,7 +1,6 @@
 #pragma once
 
 #include "ast/ASTNode.h"
-#include "ast/FunctionNode.h"
 
 #include "llvm/ExecutionEngine/ExecutionEngine.h"
 #include "llvm/ExecutionEngine/Orc/JITSymbol.h"
@@ -15,6 +14,7 @@
 
 
 class IRRenderer;
+struct FunctionNode;
 
 template<class TopLayer>
 class ORCPipeline {
