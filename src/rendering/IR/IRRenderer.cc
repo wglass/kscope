@@ -64,6 +64,7 @@ IRRenderer::get_render_context() {
 
 LazyORCPipeline::ModuleHandle
 IRRenderer::flush_modules() {
+  fprintf(stderr, "Flushing %lu llvm modules\n", pending_modules.size());
   LazyORCPipeline::ModuleHandle modules = pipeline->add_modules(std::move(pending_modules));
 
   pending_modules.clear();

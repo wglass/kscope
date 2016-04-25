@@ -31,6 +31,7 @@ LazyORCPipeline::LazyORCPipeline(IRRenderer *renderer)
 
 llvm::orc::JITSymbol
 LazyORCPipeline::find_symbol(const std::string &name) {
+  fprintf(stderr, "Finding (mangled) symbol: %s\n", name.c_str());
   return emit_layer.findSymbol(name, false);
 }
 
@@ -52,6 +53,7 @@ LazyORCPipeline::add_modules(LazyORCPipeline::ModuleSet modules) {
   // JIT.
   auto resolver = llvm::orc::createLambdaResolver(
     [&](const std::string &name) {
+      fprintf(stderr, "In resolver, looking for %s\n", name.c_str());
       if (auto symbol = find_symbol(name)) {
         return llvm::RuntimeDyld::SymbolInfo(symbol.getAddress(),
                                              symbol.getFlags());
@@ -64,6 +66,7 @@ LazyORCPipeline::add_modules(LazyORCPipeline::ModuleSet modules) {
     }
   );
 
+  fprintf(stderr, "addModuleSet for %lu modules\n", modules.size());
   return emit_layer.addModuleSet(std::move(modules),
                                  std::make_unique<llvm::SectionMemoryManager>(),
                                  std::move(resolver));
@@ -76,6 +79,7 @@ LazyORCPipeline::remove_modules(LazyORCPipeline::ModuleHandle handle) {
 
 llvm::RuntimeDyld::SymbolInfo
 LazyORCPipeline::search_functions(const std::string &name) {
+  fprintf(stderr, "Looking for function %s", name.c_str());
   auto iter = functions.find(name);
   if (iter == functions.end()) {
       return nullptr;

@@ -96,7 +96,7 @@ top :
   definition END { tree.set_root($1); }
 | extern END { tree.set_root($1); }
 | expr END {
-    PrototypeNode *proto = new PrototypeNode("", std::vector<std::string>());
+    PrototypeNode *proto = new PrototypeNode("__anon_expr", std::vector<std::string>());
     tree.set_root(new FunctionNode(proto, $1));
 }
 

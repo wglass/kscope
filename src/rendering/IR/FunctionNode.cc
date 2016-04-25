@@ -12,6 +12,7 @@
 
 llvm::Function *
 IRRenderer::render_node(FunctionNode *node) {
+  fprintf(stderr, "Adding function %s to pipeline.\n", node->proto->name.c_str());
   pipeline->add_function(node);
   return nullptr;
 }
