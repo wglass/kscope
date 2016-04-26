@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Pipeline.h"
+
 #include "llvm/ExecutionEngine/ExecutionEngine.h"
 #include "llvm/ExecutionEngine/Orc/JITSymbol.h"
 #include "llvm/IR/Mangler.h"
@@ -11,22 +13,21 @@
 #include <set>
 
 
-template <class Pipeline> class IRRenderer;
+class IRRenderer;
 struct FunctionNode;
 
 
-typedef std::vector<std::unique_ptr<llvm::Module> > ModuleSet;
-
-
 template<class Subclass, class LayerSpec>
-class ORCPipeline {
+class ORCPipeline : public Pipeline {
 public:
   typedef typename LayerSpec::TopLayer::ModuleSetHandleT ModuleHandle;
 
-  virtual void add_function(FunctionNode *node) = 0;
+  virtual ModuleHandle add_modules(ModuleSet &modules) = 0;
+  virtual void remove_modules(ModuleHandle handle) = 0;
 
-  virtual ModuleHandle add_modules(ModuleSet modules);
-  virtual void remove_modules(ModuleHandle handle);
+  void flush_modules(std::unique_ptr<ModuleSet> modules) {
+    previous_flush = add_modules(*modules);
+  }
 
   std::string mangle(const std::string &name) {
     std::string mangled_name;
@@ -52,18 +53,17 @@ public:
     return top_layer.findSymbolIn(handle, name, false);
   }
 
-  IRRenderer<Subclass> *renderer;
   std::unique_ptr<llvm::TargetMachine> target_machine;
   typename LayerSpec::TopLayer top_layer;
 
-protected:
-  ORCPipeline<LayerSpec>(IRRenderer<Subclass> *renderer,
-                           typename LayerSpec::TopLayer top_layer)
-  : renderer(renderer),
+  ORCPipeline<LayerSpec>(IRRenderer *renderer,
+                         typename LayerSpec::TopLayer top_layer)
+  : Pipeline(renderer),
     target_machine(llvm::EngineBuilder().selectTarget()),
     top_layer(std::move(top_layer)),
     data_layout(target_machine->createDataLayout()) {}
 
 private:
   const llvm::DataLayout data_layout;
+  ModuleHandle previous_flush;
 };

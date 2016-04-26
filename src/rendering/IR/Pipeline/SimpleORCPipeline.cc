@@ -3,23 +3,28 @@
 #include "ast/FunctionNode.h"
 #include "rendering/IR/IRRenderer.h"
 
+#include "llvm/ExecutionEngine/ExecutionEngine.h"
 #include "llvm/ExecutionEngine/RuntimeDyld.h"
 #include "llvm/ExecutionEngine/SectionMemoryManager.h"
 #include "llvm/ExecutionEngine/Orc/LambdaResolver.h"
-#include "llvm/ExecutionEngine/Orc/LambdaResolver.h"
+#include "llvm/ExecutionEngine/Orc/CompileUtils.h"
 #include "llvm/IR/Module.h"
 
 #include <string>
 
 
+SimpleORCPipeline::SimpleORCPipeline(IRRenderer *renderer)
+  : ORCPipeline<SimpleORCPipeline, SimpleLayerSpec>(renderer,
+                                                    SimpleLayerSpec::TopLayer(object_layer, llvm::orc::SimpleCompiler(*llvm::EngineBuilder().selectTarget()))) { }
+
 void
-SimpleORCPipeline::add_function(FunctionNode *node) {
+SimpleORCPipeline::process_function_node(FunctionNode *node) {
   renderer->render_function(node);
   renderer->flush_modules();
 }
 
 SimpleORCPipeline::ModuleHandle
-SimpleORCPipeline::add_modules(ModuleSet modules) {
+SimpleORCPipeline::add_modules(ModuleSet &modules) {
   auto resolver = llvm::orc::createLambdaResolver(
     [&](const std::string &name) {
       if (auto symbol = find_symbol(name)) {

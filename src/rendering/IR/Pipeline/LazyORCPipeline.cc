@@ -24,19 +24,19 @@ static void handle_address_error() {
   exit(1);
 }
 
-LazyORCPipeline::LazyORCPipeline(IRRenderer<LazyORCPipeline> *renderer)
+LazyORCPipeline::LazyORCPipeline(IRRenderer *renderer)
   : ORCPipeline<LazyORCPipeline, LazyLayerSpec>(renderer,
                                                 LazyLayerSpec::TopLayer(compile_layer)),
   compile_layer(object_layer, llvm::orc::SimpleCompiler(*target_machine)),
   compile_callbacks((reinterpret_cast<uintptr_t>(handle_address_error))) {}
 
 void
-LazyORCPipeline::add_function(FunctionNode *node) {
+LazyORCPipeline::process_function_node(FunctionNode *node) {
   functions[mangle(node->proto->name)] = node;
 }
 
 LazyORCPipeline::ModuleHandle
-LazyORCPipeline::add_modules(ModuleSet modules) {
+LazyORCPipeline::add_modules(ModuleSet &modules) {
   // We need a memory manager to allocate memory and resolve symbols for this
   // new module. Create one that resolves symbols by looking back into the
   // JIT.
@@ -77,13 +77,13 @@ LazyORCPipeline::search_functions(const std::string &name) {
   auto function_node = iter->second;
   functions.erase(iter);
 
-  auto handle = generate_stub(function_node);
-  auto symbol = find_symbol_in(handle, name);
+  generate_stub(function_node);
+  auto symbol = find_symbol(name);
 
   return llvm::RuntimeDyld::SymbolInfo(symbol.getAddress(), symbol.getFlags());
 }
 
-LazyORCPipeline::ModuleHandle
+void
 LazyORCPipeline::generate_stub(FunctionNode *node) {
   llvm::Function *func = renderer->render_node(node->proto);
 
@@ -107,7 +107,7 @@ LazyORCPipeline::generate_stub(FunctionNode *node) {
   llvm::orc::makeStub(*func, *body_ptr);
 
   // Step 4) Add the module containing the stub to the JIT.
-  auto stub = renderer->flush_modules();
+  renderer->flush_modules();
 
   // Step 5) Set the compile and update actions.
   //
@@ -121,11 +121,11 @@ LazyORCPipeline::generate_stub(FunctionNode *node) {
   // compiled function.
 
   callback_info.setCompileAction(
-    [this, node, body_ptr_name, stub]() {
+    [this, node, body_ptr_name]() {
       renderer->render_node(node);
-      auto handle = renderer->flush_modules();
-      auto BodySym = find_unmangled_symbol_in(handle, node->proto->name);
-      auto BodyPtrSym = find_unmangled_symbol_in(stub, body_ptr_name);
+      renderer->flush_modules();
+      auto BodySym = find_unmangled_symbol(node->proto->name);
+      auto BodyPtrSym = find_unmangled_symbol(body_ptr_name);
 
       auto BodyAddr = BodySym.getAddress();
       auto BodyPtr = reinterpret_cast<void*>(
@@ -136,6 +136,4 @@ LazyORCPipeline::generate_stub(FunctionNode *node) {
       return BodyAddr;
     }
   );
-
-  return stub;
 }

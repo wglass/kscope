@@ -2,13 +2,14 @@
 
 #include "ORCPipeline.h"
 
-#include "ast/FunctionNode.h"
-
 #include "llvm/ExecutionEngine/Orc/IRCompileLayer.h"
 #include "llvm/ExecutionEngine/Orc/ObjectLinkingLayer.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/DataLayout.h"
 
+
+class IRRenderer;
+struct FunctionNode;
 
 struct SimpleLayerSpec {
   typedef llvm::orc::ObjectLinkingLayer<> ObjectLayer;
@@ -18,15 +19,15 @@ struct SimpleLayerSpec {
 };
 
 
-class SimpleORCPipeline : ORCPipeline<SimpleORCPipeline, SimpleLayerSpec> {
+class SimpleORCPipeline : public ORCPipeline<SimpleORCPipeline, SimpleLayerSpec> {
 public:
   typedef SimpleLayerSpec::TopLayer::ModuleSetHandleT ModuleHandle;
 
-  SimpleORCPipeline(IRRenderer<SimpleORCPipeline> *renderer);
+  SimpleORCPipeline(IRRenderer *renderer);
 
-  void add_function(FunctionNode *node);
+  void process_function_node(FunctionNode *node);
 
-  ModuleHandle add_modules(ModuleSet module);
+  ModuleHandle add_modules(ModuleSet &modules);
   void remove_modules(ModuleHandle handle);
 
 private:

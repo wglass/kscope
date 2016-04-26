@@ -5,6 +5,7 @@
 #include "parsing/ASTree.h"
 
 #include "IRContext.h"
+#include "rendering/IR/Pipeline/Pipeline.h"
 
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instructions.h"
@@ -14,13 +15,15 @@
 #include <string>
 
 
-template <class Pipeline>
+enum class PipelineChoice { Simple, Lazy };
+typedef std::vector<std::unique_ptr<llvm::Module>> ModuleSet;
+
+
 class IRRenderer : public Renderer {
 
 public:
-  typedef std::vector<std::unique_ptr<llvm::Module>> ModuleSet;
 
-  IRRenderer();
+  IRRenderer(PipelineChoice pipeline_choice);
   ~IRRenderer();
 
   IRContext & get_render_context();
@@ -28,7 +31,7 @@ public:
   void render_tree(std::shared_ptr<ASTree> tree);
 
   llvm::orc::TargetAddress get_function(const std::string &name);
-  typename Pipeline::ModuleHandle flush_modules();
+  void flush_modules();
 
   llvm::Function *render_function(FunctionNode *node);
   llvm::Function *render_node(FunctionNode *node);
@@ -52,5 +55,5 @@ private:
   std::unique_ptr<Pipeline> pipeline;
   std::unique_ptr<IRContext> render_context;
 
-  ModuleSet pending_modules;
+  std::unique_ptr<ModuleSet> pending_modules;
 };

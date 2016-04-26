@@ -1,7 +1,6 @@
 #include "ast/FunctionNode.h"
 #include "parsing/ASTree.h"
 #include "rendering/IR/IRRenderer.h"
-#include "rendering/IR/ORCPipeline/LazyORCPipeline.h"
 
 #include "llvm/Support/TargetSelect.h"
 #include "llvm/IR/Function.h"
@@ -14,7 +13,7 @@
 int main() {
     llvm::InitializeNativeTarget();
 
-    auto *renderer = new IRRenderer<LazyORCPipeline>();
+    auto *renderer = new IRRenderer(PipelineChoice::Lazy);
 
     std::shared_ptr<ASTree> tree = std::make_shared<ASTree>();
 

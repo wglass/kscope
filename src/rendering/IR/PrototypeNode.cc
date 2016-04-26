@@ -11,9 +11,8 @@
 #include <vector>
 
 
-template <class Pipeline>
 llvm::Function *
-IRRenderer<Pipeline>::render_node(PrototypeNode *node) {
+IRRenderer::render_node(PrototypeNode *node) {
   auto &context = get_render_context();
   auto &llvm_context = context.get_llvm_context();
   auto &module = context.get_module();

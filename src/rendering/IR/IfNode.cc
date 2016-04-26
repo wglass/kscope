@@ -11,9 +11,8 @@
 #include "llvm/IR/Type.h"
 
 
-template <class Pipeline>
 llvm::Value *
-IRRenderer<Pipeline>::render_node(IfNode *node) {
+IRRenderer::render_node(IfNode *node) {
   auto &context = get_render_context();
   auto &llvm_context = context.get_llvm_context();
   auto &builder = context.get_builder();

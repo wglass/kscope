@@ -7,9 +7,8 @@
 #include "IRRenderer.h"
 
 
-template <class Pipeline>
 llvm::Value *
-IRRenderer<Pipeline>::render_node(NumberNode *node) {
+IRRenderer::render_node(NumberNode *node) {
   auto &context = get_render_context();
   auto &llvm_context = context.get_llvm_context();
 

@@ -13,7 +13,7 @@
 #include "llvm/IR/Module.h"
 
 
-template <class Pipeline> class IRRenderer;
+class IRRenderer;
 struct FunctionNode;
 
 
@@ -30,11 +30,11 @@ class LazyORCPipeline : public ORCPipeline<LazyORCPipeline, LazyLayerSpec> {
 public:
   typedef LazyLayerSpec::TopLayer::ModuleSetHandleT ModuleHandle;
 
-  LazyORCPipeline(IRRenderer<LazyORCPipeline> *renderer);
+  LazyORCPipeline(IRRenderer *renderer);
 
-  void add_function(FunctionNode *node);
+  void process_function_node(FunctionNode *node);
 
-  ModuleHandle add_modules(ModuleSet modules);
+  ModuleHandle add_modules(ModuleSet &modules);
   void remove_modules(ModuleHandle handle);
 
 private:
@@ -46,5 +46,5 @@ private:
   std::map<std::string, FunctionNode *> functions;
 
   llvm::RuntimeDyld::SymbolInfo search_functions(const std::string &name);
-  ModuleHandle generate_stub(FunctionNode *node);
+  void generate_stub(FunctionNode *node);
 };

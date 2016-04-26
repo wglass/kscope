@@ -6,9 +6,8 @@
 #include "llvm/IR/Value.h"
 
 
-template <class Pipeline>
 llvm::Value *
-IRRenderer<Pipeline>::render_node(VariableNode *node) {
+IRRenderer::render_node(VariableNode *node) {
   auto &context = get_render_context();
 
   llvm::Value *val = context.get_named_value(node->name);
