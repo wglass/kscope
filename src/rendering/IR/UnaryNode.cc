@@ -7,8 +7,9 @@
 #include "IRRenderer.h"
 
 
+template <class Pipeline>
 llvm::Value *
-IRRenderer::render_node(UnaryNode *node) {
+IRRenderer<Pipeline>::render_node(UnaryNode *node) {
   auto &context = get_render_context();
   auto &module = context.get_module();
   auto &builder = context.get_builder();

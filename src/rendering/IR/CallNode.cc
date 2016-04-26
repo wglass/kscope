@@ -9,8 +9,9 @@
 #include <vector>
 
 
+template <class Pipeline>
 llvm::Value *
-IRRenderer::render_node(CallNode *node) {
+IRRenderer<Pipeline>::render_node(CallNode *node) {
   auto &context = get_render_context();
   auto &module = context.get_module();
   auto &builder = context.get_builder();

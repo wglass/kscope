@@ -12,17 +12,6 @@
 #include <string>
 
 
-llvm::orc::JITSymbol
-SimpleORCPipeline::find_symbol(const std::string &name) {
-  return compile_layer.findSymbol(name, true);
-}
-
-llvm::orc::JITSymbol
-SimpleORCPipeline::find_symbol_in(ModuleHandle handle,
-                                const std::string &name) {
-  return compile_layer.findSymbolIn(handle, name, true);
-}
-
 void
 SimpleORCPipeline::add_function(FunctionNode *node) {
   renderer->render_function(node);
@@ -30,7 +19,7 @@ SimpleORCPipeline::add_function(FunctionNode *node) {
 }
 
 SimpleORCPipeline::ModuleHandle
-SimpleORCPipeline::add_modules(SimpleORCPipeline::ModuleSet modules) {
+SimpleORCPipeline::add_modules(ModuleSet modules) {
   auto resolver = llvm::orc::createLambdaResolver(
     [&](const std::string &name) {
       if (auto symbol = find_symbol(name)) {
@@ -44,12 +33,12 @@ SimpleORCPipeline::add_modules(SimpleORCPipeline::ModuleSet modules) {
       return nullptr;
     }
   );
-  return compile_layer.addModuleSet(std::move(modules),
-                                    std::make_unique<llvm::SectionMemoryManager>(),
-                                    std::move(resolver));
+  return top_layer.addModuleSet(std::move(modules),
+                                std::make_unique<llvm::SectionMemoryManager>(),
+                                std::move(resolver));
 }
 
 void
 SimpleORCPipeline::remove_modules(SimpleORCPipeline::ModuleHandle handle) {
-  compile_layer.removeModuleSet(handle);
+  top_layer.removeModuleSet(handle);
 }

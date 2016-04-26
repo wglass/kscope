@@ -10,25 +10,23 @@
 #include "llvm/IR/DataLayout.h"
 
 
-typedef llvm::orc::ObjectLinkingLayer<> SimpleObjectLayer;
-typedef llvm::orc::IRCompileLayer<SimpleObjectLayer> SimpleCompileLayer;
+struct SimpleLayerSpec {
+  typedef llvm::orc::ObjectLinkingLayer<> ObjectLayer;
+  typedef llvm::orc::IRCompileLayer<ObjectLayer> CompileLayer;
+
+  typedef CompileLayer TopLayer;
+  typedef CompileLayer::ModuleSetHandleT ModuleHandle;
+};
 
 
-class SimpleORCPipeline : ORCPipeline<SimpleCompileLayer> {
+class SimpleORCPipeline : ORCPipeline<SimpleLayerSpec> {
 public:
-  typedef ORCPipeline<SimpleCompileLayer>::ModuleSet ModuleSet;
-  typedef SimpleCompileLayer::ModuleSetHandleT ModuleHandle;
 
   void add_function(FunctionNode *node);
 
-  ModuleHandle add_modules(ModuleSet module);
-  void remove_modules(ModuleHandle handle);
-
-  llvm::orc::JITSymbol find_symbol(const std::string&name);
-  llvm::orc::JITSymbol find_symbol_in(ModuleHandle handle,
-                                      const std::string &name);
+  SimpleLayerSpec::ModuleHandle add_modules(ModuleSet module);
+  void remove_modules(SimpleLayerSpec::ModuleHandle handle);
 
 private:
-  SimpleObjectLayer object_layer;
-  SimpleCompileLayer compile_layer;
+  SimpleLayerSpec::ObjectLayer object_layer;
 };

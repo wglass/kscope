@@ -14,8 +14,9 @@
 #include <vector>
 
 
+template <class Pipeline>
 llvm::Value *
-IRRenderer::render_node(VarNode *node) {
+IRRenderer<Pipeline>::render_node(VarNode *node) {
   auto &context = get_render_context();
   auto &llvm_context = context.get_llvm_context();
   auto &builder = context.get_builder();

@@ -13,39 +13,38 @@
 #include "llvm/IR/Module.h"
 
 
+template <class Pipeline> class IRRenderer;
 struct FunctionNode;
 
 
-typedef llvm::orc::ObjectLinkingLayer<> ObjectLayer;
-typedef llvm::orc::IRCompileLayer<ObjectLayer> CompileLayer;
-typedef llvm::orc::LazyEmittingLayer<CompileLayer> EmitLayer;
+struct LazyLayerSpec {
+  typedef llvm::orc::ObjectLinkingLayer<> ObjectLayer;
+  typedef llvm::orc::IRCompileLayer<ObjectLayer> CompileLayer;
+  typedef llvm::orc::LazyEmittingLayer<CompileLayer> EmitLayer;
 
-class LazyORCPipeline : public ORCPipeline<EmitLayer> {
+  typedef EmitLayer TopLayer;
+  typedef EmitLayer::ModuleSetHandleT ModuleHandle;
+};
+
+
+class LazyORCPipeline : public ORCPipeline<LazyLayerSpec> {
 
 public:
-  typedef ORCPipeline<EmitLayer>::ModuleSet ModuleSet;
-  typedef EmitLayer::ModuleSetHandleT ModuleHandle;
-
-  LazyORCPipeline(IRRenderer *renderer);
+  LazyORCPipeline(IRRenderer<ORCPipeline<LazyLayerSpec>> *renderer);
 
   void add_function(FunctionNode *node);
 
-  ModuleHandle add_modules(ModuleSet modules);
-  void remove_modules(ModuleHandle handle);
-
-  llvm::orc::JITSymbol find_symbol(const std::string &name);
-  llvm::orc::JITSymbol find_symbol_in(ModuleHandle handle,
-                                      const std::string &name);
+  LazyLayerSpec::ModuleHandle add_modules(ModuleSet modules);
+  void remove_modules(LazyLayerSpec::ModuleHandle handle);
 
 private:
-  ObjectLayer object_layer;
-  CompileLayer compile_layer;
-  EmitLayer emit_layer;
+  LazyLayerSpec::ObjectLayer object_layer;
+  LazyLayerSpec::CompileLayer compile_layer;
 
   llvm::orc::LocalJITCompileCallbackManager<llvm::orc::OrcX86_64> compile_callbacks;
 
   std::map<std::string, FunctionNode *> functions;
 
   llvm::RuntimeDyld::SymbolInfo search_functions(const std::string &name);
-  ModuleHandle generate_stub(FunctionNode *node);
+  LazyLayerSpec::ModuleHandle generate_stub(FunctionNode *node);
 };

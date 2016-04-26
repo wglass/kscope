@@ -4,9 +4,7 @@
 
 #include "parsing/ASTree.h"
 
-#include "IRRenderSpec.h"
 #include "IRContext.h"
-#include "ORCPipeline/LazyORCPipeline.h"
 
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instructions.h"
@@ -16,6 +14,7 @@
 #include <string>
 
 
+template <class Pipeline>
 class IRRenderer : public Renderer {
 
 public:
@@ -29,7 +28,7 @@ public:
   void render_tree(std::shared_ptr<ASTree> tree);
 
   llvm::orc::TargetAddress get_function(const std::string &name);
-  LazyORCPipeline::ModuleHandle flush_modules();
+  typename Pipeline::ModuleHandle flush_modules();
 
   llvm::Function *render_function(FunctionNode *node);
   llvm::Function *render_node(FunctionNode *node);
@@ -50,7 +49,7 @@ private:
 
   IRRenderer &operator =(IRRenderer other);
 
-  std::unique_ptr<LazyORCPipeline> pipeline;
+  std::unique_ptr<Pipeline> pipeline;
   std::unique_ptr<IRContext> render_context;
 
   ModuleSet pending_modules;

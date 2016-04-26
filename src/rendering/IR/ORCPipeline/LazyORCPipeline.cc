@@ -16,6 +16,7 @@
 
 #include <functional>
 #include <string>
+#include <cstdio>
 
 
 static void handle_address_error() {
@@ -23,31 +24,18 @@ static void handle_address_error() {
   exit(1);
 }
 
-LazyORCPipeline::LazyORCPipeline(IRRenderer *renderer)
-  : ORCPipeline<EmitLayer>::ORCPipeline(renderer),
-    compile_layer(object_layer, llvm::orc::SimpleCompiler(*target_machine)),
-    emit_layer(compile_layer),
-    compile_callbacks((reinterpret_cast<uintptr_t>(handle_address_error))) {}
-
-llvm::orc::JITSymbol
-LazyORCPipeline::find_symbol(const std::string &name) {
-  fprintf(stderr, "Finding (mangled) symbol: %s\n", name.c_str());
-  return emit_layer.findSymbol(name, false);
-}
-
-llvm::orc::JITSymbol
-LazyORCPipeline::find_symbol_in(LazyORCPipeline::ModuleHandle handle,
-                                const std::string &name) {
-  return emit_layer.findSymbolIn(handle, name, false);
-}
+LazyORCPipeline::LazyORCPipeline(IRRenderer<ORCPipeline<LazyLayerSpec>> *renderer)
+  : ORCPipeline<LazyLayerSpec>(renderer, LazyLayerSpec::TopLayer(compile_layer)),
+  compile_layer(object_layer, llvm::orc::SimpleCompiler(*target_machine)),
+  compile_callbacks((reinterpret_cast<uintptr_t>(handle_address_error))) {}
 
 void
 LazyORCPipeline::add_function(FunctionNode *node) {
   functions[mangle(node->proto->name)] = node;
 }
 
-LazyORCPipeline::ModuleHandle
-LazyORCPipeline::add_modules(LazyORCPipeline::ModuleSet modules) {
+LazyLayerSpec::ModuleHandle
+LazyORCPipeline::add_modules(ModuleSet modules) {
   // We need a memory manager to allocate memory and resolve symbols for this
   // new module. Create one that resolves symbols by looking back into the
   // JIT.
@@ -67,14 +55,14 @@ LazyORCPipeline::add_modules(LazyORCPipeline::ModuleSet modules) {
   );
 
   fprintf(stderr, "addModuleSet for %lu modules\n", modules.size());
-  return emit_layer.addModuleSet(std::move(modules),
-                                 std::make_unique<llvm::SectionMemoryManager>(),
+  return top_layer.addModuleSet(std::move(modules),
+                                std::make_unique<llvm::SectionMemoryManager>(),
                                  std::move(resolver));
 }
 
 void
-LazyORCPipeline::remove_modules(LazyORCPipeline::ModuleHandle handle) {
-  emit_layer.removeModuleSet(handle);
+LazyORCPipeline::remove_modules(LazyLayerSpec::ModuleHandle handle) {
+  top_layer.removeModuleSet(handle);
 }
 
 llvm::RuntimeDyld::SymbolInfo
@@ -94,7 +82,7 @@ LazyORCPipeline::search_functions(const std::string &name) {
   return llvm::RuntimeDyld::SymbolInfo(symbol.getAddress(), symbol.getFlags());
 }
 
-LazyORCPipeline::ModuleHandle
+LazyLayerSpec::ModuleHandle
 LazyORCPipeline::generate_stub(FunctionNode *node) {
   llvm::Function *func = renderer->render_node(node->proto);
 

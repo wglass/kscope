@@ -10,16 +10,18 @@
 #include <iostream>
 
 
+template <class Pipeline>
 llvm::Function *
-IRRenderer::render_node(FunctionNode *node) {
+IRRenderer<Pipeline>::render_node(FunctionNode *node) {
   fprintf(stderr, "Adding function %s to pipeline.\n", node->proto->name.c_str());
   pipeline->add_function(node);
   return nullptr;
 }
 
 
+template <class Pipeline>
 llvm::Function *
-IRRenderer::render_function(FunctionNode *node) {
+IRRenderer<Pipeline>::render_function(FunctionNode *node) {
   auto &context = get_render_context();
   auto &builder = context.get_builder();
   auto &pass_manager = context.get_pass_manager();

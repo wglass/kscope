@@ -1,9 +1,9 @@
 #include "IRRenderer.h"
 
 #include "IRContext.h"
-#include "IRRenderSpec.h"
-#include "ORCPipeline/LazyORCPipeline.h"
 #include "ast/ASTNode.h"
+
+#include "rendering/IR/ORCPipeline/LazyORCPipeline.h"
 
 #include "llvm/ExecutionEngine/ExecutionEngine.h"
 #include "llvm/ExecutionEngine/Orc/JITSymbol.h"
@@ -13,48 +13,55 @@
 #include <string>
 
 
-IRRenderer::IRRenderer()
-  : pipeline(std::make_unique<LazyORCPipeline>(this)),
-    pending_modules(IRRenderer::ModuleSet()) {
+template <class Pipeline>
+IRRenderer<Pipeline>::IRRenderer()
+  : pipeline(std::make_unique<Pipeline>(this)),
+    pending_modules(IRRenderer<Pipeline>::ModuleSet()) {
 }
 
-IRRenderer::IRRenderer(IRRenderer &&other) {
+template <class Pipeline>
+IRRenderer<Pipeline>::IRRenderer(IRRenderer &&other) {
   render_context = std::move(other.render_context);
   pipeline = std::move(other.pipeline);
   pending_modules = std::move(other.pending_modules);
 }
 
-IRRenderer &
-IRRenderer::operator =(IRRenderer other) {
+template <class Pipeline>
+IRRenderer<Pipeline> &
+IRRenderer<Pipeline>::operator =(IRRenderer other) {
     std::swap(render_context, other.render_context);
     std::swap(pipeline, other.pipeline);
     std::swap(pending_modules, other.pending_modules);
     return *this;
 }
 
-IRRenderer::~IRRenderer() {
+template <class Pipeline>
+IRRenderer<Pipeline>::~IRRenderer() {
   pipeline.release();
   render_context.release();
 }
 
+template <class Pipeline>
 void
-IRRenderer::render_tree(std::shared_ptr<ASTree> tree) {
+IRRenderer<Pipeline>::render_tree(std::shared_ptr<ASTree> tree) {
   auto &context = get_render_context();
 
   render(tree->root.get());
   pending_modules.push_back(context.give_up_module());
 }
 
+template <class Pipeline>
 llvm::orc::TargetAddress
-IRRenderer::get_function(const std::string &name) {
+IRRenderer<Pipeline>::get_function(const std::string &name) {
   flush_modules();
 
   auto symbol = pipeline->find_unmangled_symbol(name);
   return symbol.getAddress();
 }
 
+template <class Pipeline>
 IRContext &
-IRRenderer::get_render_context() {
+IRRenderer<Pipeline>::get_render_context() {
   if ( ! render_context || ! render_context->has_module() ) {
     render_context = std::make_unique<IRContext>();
   }
@@ -62,12 +69,16 @@ IRRenderer::get_render_context() {
   return *render_context;
 }
 
-LazyORCPipeline::ModuleHandle
-IRRenderer::flush_modules() {
+template <class Pipeline>
+typename Pipeline::ModuleHandle
+IRRenderer<Pipeline>::flush_modules() {
   fprintf(stderr, "Flushing %lu llvm modules\n", pending_modules.size());
-  LazyORCPipeline::ModuleHandle modules = pipeline->add_modules(std::move(pending_modules));
+  typename Pipeline::ModuleHandle modules = pipeline->add_modules(std::move(pending_modules));
 
   pending_modules.clear();
 
   return modules;
 }
+
+
+class LazyIRRenderer : IRRenderer<LazyORCPipeline> {};
