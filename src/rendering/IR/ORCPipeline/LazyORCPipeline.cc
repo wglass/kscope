@@ -24,8 +24,9 @@ static void handle_address_error() {
   exit(1);
 }
 
-LazyORCPipeline::LazyORCPipeline(IRRenderer<ORCPipeline<LazyLayerSpec>> *renderer)
-  : ORCPipeline<LazyLayerSpec>(renderer, LazyLayerSpec::TopLayer(compile_layer)),
+LazyORCPipeline::LazyORCPipeline(IRRenderer<LazyORCPipeline> *renderer)
+  : ORCPipeline<LazyORCPipeline, LazyLayerSpec>(renderer,
+                                                LazyLayerSpec::TopLayer(compile_layer)),
   compile_layer(object_layer, llvm::orc::SimpleCompiler(*target_machine)),
   compile_callbacks((reinterpret_cast<uintptr_t>(handle_address_error))) {}
 
@@ -34,7 +35,7 @@ LazyORCPipeline::add_function(FunctionNode *node) {
   functions[mangle(node->proto->name)] = node;
 }
 
-LazyLayerSpec::ModuleHandle
+LazyORCPipeline::ModuleHandle
 LazyORCPipeline::add_modules(ModuleSet modules) {
   // We need a memory manager to allocate memory and resolve symbols for this
   // new module. Create one that resolves symbols by looking back into the
@@ -57,11 +58,11 @@ LazyORCPipeline::add_modules(ModuleSet modules) {
   fprintf(stderr, "addModuleSet for %lu modules\n", modules.size());
   return top_layer.addModuleSet(std::move(modules),
                                 std::make_unique<llvm::SectionMemoryManager>(),
-                                 std::move(resolver));
+                                std::move(resolver));
 }
 
 void
-LazyORCPipeline::remove_modules(LazyLayerSpec::ModuleHandle handle) {
+LazyORCPipeline::remove_modules(LazyORCPipeline::ModuleHandle handle) {
   top_layer.removeModuleSet(handle);
 }
 
@@ -82,7 +83,7 @@ LazyORCPipeline::search_functions(const std::string &name) {
   return llvm::RuntimeDyld::SymbolInfo(symbol.getAddress(), symbol.getFlags());
 }
 
-LazyLayerSpec::ModuleHandle
+LazyORCPipeline::ModuleHandle
 LazyORCPipeline::generate_stub(FunctionNode *node) {
   llvm::Function *func = renderer->render_node(node->proto);
 

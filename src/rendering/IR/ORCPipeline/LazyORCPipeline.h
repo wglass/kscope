@@ -23,19 +23,19 @@ struct LazyLayerSpec {
   typedef llvm::orc::LazyEmittingLayer<CompileLayer> EmitLayer;
 
   typedef EmitLayer TopLayer;
-  typedef EmitLayer::ModuleSetHandleT ModuleHandle;
 };
 
 
-class LazyORCPipeline : public ORCPipeline<LazyLayerSpec> {
-
+class LazyORCPipeline : public ORCPipeline<LazyORCPipeline, LazyLayerSpec> {
 public:
-  LazyORCPipeline(IRRenderer<ORCPipeline<LazyLayerSpec>> *renderer);
+  typedef LazyLayerSpec::TopLayer::ModuleSetHandleT ModuleHandle;
+
+  LazyORCPipeline(IRRenderer<LazyORCPipeline> *renderer);
 
   void add_function(FunctionNode *node);
 
-  LazyLayerSpec::ModuleHandle add_modules(ModuleSet modules);
-  void remove_modules(LazyLayerSpec::ModuleHandle handle);
+  ModuleHandle add_modules(ModuleSet modules);
+  void remove_modules(ModuleHandle handle);
 
 private:
   LazyLayerSpec::ObjectLayer object_layer;
@@ -46,5 +46,5 @@ private:
   std::map<std::string, FunctionNode *> functions;
 
   llvm::RuntimeDyld::SymbolInfo search_functions(const std::string &name);
-  LazyLayerSpec::ModuleHandle generate_stub(FunctionNode *node);
+  ModuleHandle generate_stub(FunctionNode *node);
 };

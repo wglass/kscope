@@ -15,17 +15,19 @@ struct SimpleLayerSpec {
   typedef llvm::orc::IRCompileLayer<ObjectLayer> CompileLayer;
 
   typedef CompileLayer TopLayer;
-  typedef CompileLayer::ModuleSetHandleT ModuleHandle;
 };
 
 
-class SimpleORCPipeline : ORCPipeline<SimpleLayerSpec> {
+class SimpleORCPipeline : ORCPipeline<SimpleORCPipeline, SimpleLayerSpec> {
 public:
+  typedef SimpleLayerSpec::TopLayer::ModuleSetHandleT ModuleHandle;
+
+  SimpleORCPipeline(IRRenderer<SimpleORCPipeline> *renderer);
 
   void add_function(FunctionNode *node);
 
-  SimpleLayerSpec::ModuleHandle add_modules(ModuleSet module);
-  void remove_modules(SimpleLayerSpec::ModuleHandle handle);
+  ModuleHandle add_modules(ModuleSet module);
+  void remove_modules(ModuleHandle handle);
 
 private:
   SimpleLayerSpec::ObjectLayer object_layer;

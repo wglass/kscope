@@ -79,6 +79,3 @@ IRRenderer<Pipeline>::flush_modules() {
 
   return modules;
 }
-
-
-class LazyIRRenderer : IRRenderer<LazyORCPipeline> {};
