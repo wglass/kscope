@@ -74,6 +74,6 @@ IRRenderer::get_render_context() {
 void
 IRRenderer::flush_modules() {
   fprintf(stderr, "Flushing %lu llvm modules\n", pending_modules->size());
-  pipeline->flush_modules(std::move(pending_modules));
+  pipeline->flush_modules(*pending_modules);
   pending_modules->clear();
 }

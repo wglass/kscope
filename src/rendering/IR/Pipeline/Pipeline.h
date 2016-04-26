@@ -20,7 +20,7 @@ public:
   virtual llvm::orc::JITSymbol find_symbol(const std::string &name) = 0;
   virtual llvm::orc::JITSymbol find_unmangled_symbol(const std::string &name) = 0;
 
-  virtual void flush_modules(std::unique_ptr<ModuleSet> modules) = 0;
+  virtual void flush_modules(ModuleSet &modules) = 0;
 
 protected:
   Pipeline(IRRenderer *renderer) : renderer(renderer) {};

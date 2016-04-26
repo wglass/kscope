@@ -25,8 +25,8 @@ public:
   virtual ModuleHandle add_modules(ModuleSet &modules) = 0;
   virtual void remove_modules(ModuleHandle handle) = 0;
 
-  void flush_modules(std::unique_ptr<ModuleSet> modules) {
-    previous_flush = add_modules(*modules);
+  void flush_modules(ModuleSet &modules) {
+    previous_flush = add_modules(modules);
   }
 
   std::string mangle(const std::string &name) {
