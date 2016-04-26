@@ -1,7 +1,9 @@
 #pragma once
 
 #include "ASTNode.h"
-#include "rendering/IR/IRRenderer.h"
+#include "rendering/Renderer.h"
+
+#include "llvm/IR/Value.h"
 
 #include <string>
 
@@ -13,7 +15,7 @@ struct BinaryNode : public ASTNode {
   BinaryNode(char op, ASTNode *lhs, ASTNode *rhs)
   : op(op), lhs(lhs), rhs(rhs) {};
 
-  void * render(IRRenderer *renderer) {
+  llvm::Value * render(Renderer *renderer) {
     return renderer->render_node(this);
   }
 };

@@ -3,7 +3,9 @@
 #include "ASTNode.h"
 
 #include "PrototypeNode.h"
-#include "rendering/IR/IRRenderer.h"
+#include "rendering/Renderer.h"
+
+#include "llvm/IR/Value.h"
 
 
 struct FunctionNode : public ASTNode {
@@ -13,7 +15,7 @@ struct FunctionNode : public ASTNode {
   FunctionNode(PrototypeNode *proto, ASTNode *body)
     : proto(proto), body(body) {};
 
-  void * render(IRRenderer *renderer) {
+  llvm::Value * render(Renderer *renderer) {
     return renderer->render_node(this);
   }
 };

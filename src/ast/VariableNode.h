@@ -1,7 +1,9 @@
 #pragma once
 
 #include "ASTNode.h"
-#include "rendering/IR/IRRenderer.h"
+#include "rendering/Renderer.h"
+
+#include "llvm/IR/Value.h"
 
 #include <string>
 
@@ -12,7 +14,7 @@ struct VariableNode : public ASTNode {
   VariableNode(const std::string &name) : name(name) {};
   const std::string getName() const { return name; };
 
-  void * render(IRRenderer *renderer) {
+  llvm::Value * render(Renderer *renderer) {
     return renderer->render_node(this);
   }
 };

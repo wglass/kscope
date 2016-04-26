@@ -1,13 +1,15 @@
 #pragma once
 
+#include "llvm/IR/Value.h"
+
 #include <utility>
 #include <string>
 
 
-class IRRenderer;
+class Renderer;
 
 struct ASTNode {
   virtual ~ASTNode() {};
 
-  virtual void *render(IRRenderer *renderer) = 0;
+  virtual llvm::Value *render(Renderer *renderer) = 0;
 };

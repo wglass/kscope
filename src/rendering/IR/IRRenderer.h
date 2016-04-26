@@ -16,7 +16,7 @@
 #include <string>
 
 
-class IRRenderer : public Renderer<IRRenderer, IRRenderSpec> {
+class IRRenderer : public Renderer {
 
 public:
   typedef std::vector<std::unique_ptr<llvm::Module>> ModuleSet;
