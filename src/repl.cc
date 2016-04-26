@@ -12,8 +12,10 @@
 
 int main() {
     llvm::InitializeNativeTarget();
+    llvm::InitializeNativeTargetAsmPrinter();
+    llvm::InitializeNativeTargetAsmParser();
 
-    auto *renderer = new IRRenderer(PipelineChoice::Lazy);
+    auto *renderer = new IRRenderer(PipelineChoice::Simple);
 
     std::shared_ptr<ASTree> tree = std::make_shared<ASTree>();
 

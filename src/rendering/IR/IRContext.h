@@ -33,8 +33,6 @@ public:
                                const std::vector<std::string> &args);
 
 private:
-  IRContext(llvm::LLVMContext &llvm_context,
-                  std::unique_ptr<llvm::Module> module);
   IRContext(const IRContext &other) = delete;
   IRContext(IRContext &&other);
 

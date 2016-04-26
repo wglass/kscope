@@ -19,13 +19,7 @@ generate_module_name() {
 
 IRContext::IRContext()
   : llvm_context(llvm::getGlobalContext()),
-    module(std::make_unique<llvm::Module>(generate_module_name(), llvm_context)) {}
-
-
-IRContext::IRContext(llvm::LLVMContext &llvm_context,
-                     std::unique_ptr<llvm::Module> module)
-  : llvm_context(llvm_context),
-    module(std::move(module)),
+    module(std::make_unique<llvm::Module>(generate_module_name(), llvm_context)),
     builder(std::make_unique<llvm::IRBuilder<>>(llvm_context)),
     pass_manager(std::make_unique<llvm::legacy::FunctionPassManager>(module.get())) {
 
