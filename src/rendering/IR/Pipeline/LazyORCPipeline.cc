@@ -27,11 +27,15 @@ static void handle_address_error() {
 LazyORCPipeline::LazyORCPipeline(IRRenderer *renderer)
   : ORCPipeline<LazyORCPipeline, LazyLayerSpec>(renderer,
                                                 LazyLayerSpec::TopLayer(compile_layer)),
-  compile_layer(object_layer, llvm::orc::SimpleCompiler(*target_machine)),
+  compile_layer(object_layer, llvm::orc::SimpleCompiler(renderer->get_target_machine())),
   compile_callbacks((reinterpret_cast<uintptr_t>(handle_address_error))) {}
 
 void
 LazyORCPipeline::process_function_node(FunctionNode *node) {
+  if ( node->proto->name == "__anon_expr" ) {
+    renderer->render_function(node);
+  }
+
   functions[mangle(node->proto->name)] = node;
 }
 
@@ -42,7 +46,6 @@ LazyORCPipeline::add_modules(ModuleSet &modules) {
   // JIT.
   auto resolver = llvm::orc::createLambdaResolver(
     [&](const std::string &name) {
-      fprintf(stderr, "In resolver, looking for %s\n", name.c_str());
       if (auto symbol = find_symbol(name)) {
         return llvm::RuntimeDyld::SymbolInfo(symbol.getAddress(),
                                              symbol.getFlags());
@@ -67,7 +70,6 @@ LazyORCPipeline::remove_modules(LazyORCPipeline::ModuleHandle handle) {
 
 llvm::RuntimeDyld::SymbolInfo
 LazyORCPipeline::search_functions(const std::string &name) {
-  fprintf(stderr, "Looking for function %s", name.c_str());
   auto search = functions.find(name);
   if ( search == functions.end() ) {
       return nullptr;
@@ -77,7 +79,7 @@ LazyORCPipeline::search_functions(const std::string &name) {
   functions.erase(search);
 
   generate_stub(function_node);
-  auto symbol = find_symbol(name);
+  auto symbol = find_symbol_in(previous_flush, name);
 
   return llvm::RuntimeDyld::SymbolInfo(symbol.getAddress(), symbol.getFlags());
 }
@@ -108,6 +110,8 @@ LazyORCPipeline::generate_stub(FunctionNode *node) {
   // Step 4) Add the module containing the stub to the JIT.
   renderer->flush_modules();
 
+  auto stub_handle = std::move(previous_flush);
+
   // Step 5) Set the compile and update actions.
   //
   //   The compile action will IRGen the function and add it to the JIT, then
@@ -120,19 +124,19 @@ LazyORCPipeline::generate_stub(FunctionNode *node) {
   // compiled function.
 
   callback_info.setCompileAction(
-    [this, node, body_ptr_name]() {
-      renderer->render_node(node);
+    [this, node, body_ptr_name, stub_handle]() {
+      renderer->render_function(node);
       renderer->flush_modules();
-      auto BodySym = find_unmangled_symbol(node->proto->name);
-      auto BodyPtrSym = find_unmangled_symbol(body_ptr_name);
 
-      auto BodyAddr = BodySym.getAddress();
-      auto BodyPtr = reinterpret_cast<void*>(
-                     static_cast<uintptr_t>(BodyPtrSym.getAddress()));
+      auto symbol = find_unmangled_symbol_in(previous_flush, node->proto->name);
+      auto stub_symbol = find_unmangled_symbol_in(stub_handle, body_ptr_name);
 
-      memcpy(BodyPtr, &BodyAddr, sizeof(uintptr_t));
+      auto body_address = symbol.getAddress();
+      auto stub_pointer = reinterpret_cast<void*>(static_cast<uintptr_t>(stub_symbol.getAddress()));
 
-      return BodyAddr;
+      memcpy(stub_pointer, &body_address, sizeof(uintptr_t));
+
+      return body_address;
     }
   );
 }

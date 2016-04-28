@@ -12,7 +12,7 @@
 
 llvm::Function *
 IRRenderer::render_node(FunctionNode *node) {
-  fprintf(stderr, "Adding function %s to pipeline.\n", node->proto->name.c_str());
+  proto_map->insert(std::make_pair(node->proto->name, node->proto));
   pipeline->process_function_node(node);
   return nullptr;
 }
@@ -48,7 +48,7 @@ IRRenderer::render_function(FunctionNode *node) {
 
   pass_manager.run(*func);
 
-  fprintf(stderr, "Read function definition.");
+  fprintf(stderr, "Generated function definition:\n");
   func->dump();
 
   return func;

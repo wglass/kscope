@@ -1,8 +1,9 @@
 #include "IRRenderer.h"
 
 #include "IRContext.h"
-#include "ast/ASTNode.h"
 
+#include "parsing/ASTree.h"
+#include "rendering/IR/Pipeline/Pipeline.h"
 #include "rendering/IR/Pipeline/LazyORCPipeline.h"
 #include "rendering/IR/Pipeline/SimpleORCPipeline.h"
 
@@ -16,7 +17,9 @@
 
 IRRenderer::IRRenderer(PipelineChoice pipeline_choice)
   : pending_modules(std::make_unique<ModuleSet>()),
-    proto_map(std::make_unique<ProtoMap>()) {
+    proto_map(std::make_unique<ProtoMap>()),
+    target_machine(llvm::EngineBuilder().selectTarget()),
+    data_layout(target_machine->createDataLayout()) {
   switch (pipeline_choice) {
   case PipelineChoice::Lazy:
     pipeline = std::make_unique<LazyORCPipeline>(this);
@@ -27,7 +30,8 @@ IRRenderer::IRRenderer(PipelineChoice pipeline_choice)
   }
 }
 
-IRRenderer::IRRenderer(IRRenderer &&other) {
+IRRenderer::IRRenderer(IRRenderer &&other)
+  : data_layout(other.data_layout) {
   render_context = std::move(other.render_context);
   pipeline = std::move(other.pipeline);
   pending_modules = std::move(other.pending_modules);
@@ -49,13 +53,19 @@ IRRenderer::~IRRenderer() {
   proto_map.release();
 }
 
+llvm::TargetMachine &
+IRRenderer::get_target_machine() {
+  return *target_machine;
+}
+
+const llvm::DataLayout
+IRRenderer::get_data_layout() {
+  return data_layout;
+}
+
 void
 IRRenderer::render_tree(std::shared_ptr<ASTree> tree) {
-  auto &context = get_render_context();
-
   render(tree->root.get());
-
-  pending_modules->push_back(context.give_up_module());
 }
 
 llvm::orc::TargetAddress
@@ -79,7 +89,7 @@ IRRenderer::get_prototype(const std::string &name) {
 IRContext &
 IRRenderer::get_render_context() {
   if ( ! render_context || ! render_context->has_module() ) {
-    render_context = std::make_unique<IRContext>();
+    render_context = std::make_unique<IRContext>(data_layout);
   }
 
   return *render_context;
@@ -87,7 +97,15 @@ IRRenderer::get_render_context() {
 
 void
 IRRenderer::flush_modules() {
-  fprintf(stderr, "Flushing %lu llvm modules\n", pending_modules->size());
+  if ( render_context && render_context->has_module() ) {
+    pending_modules->push_back(render_context->give_up_module());
+  }
+
+  if ( pending_modules->empty() ) {
+    fprintf(stderr, "No modules to flush!\n");
+    return;
+  }
+
   pipeline->flush_modules(*pending_modules);
   pending_modules->clear();
 }

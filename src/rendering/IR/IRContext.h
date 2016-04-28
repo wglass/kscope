@@ -11,7 +11,7 @@
 
 class IRContext {
 public:
-  IRContext();
+  IRContext(const llvm::DataLayout data_layout);
   ~IRContext();
 
   llvm::LLVMContext & get_llvm_context();

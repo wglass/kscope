@@ -17,11 +17,13 @@ generate_module_name() {
   return name;
 }
 
-IRContext::IRContext()
+IRContext::IRContext(const llvm::DataLayout data_layout)
   : llvm_context(llvm::getGlobalContext()),
     module(std::make_unique<llvm::Module>(generate_module_name(), llvm_context)),
     builder(std::make_unique<llvm::IRBuilder<>>(llvm_context)),
     pass_manager(std::make_unique<llvm::legacy::FunctionPassManager>(module.get())) {
+
+  module->setDataLayout(data_layout);
 
   pass_manager->add(llvm::createPromoteMemoryToRegisterPass());
   pass_manager->add(llvm::createInstructionCombiningPass());
