@@ -27,6 +27,7 @@ public:
 
   void flush_modules(ModuleSet &modules) {
     previous_flush = add_modules(modules);
+    top_layer.emitAndFinalize(previous_flush);
   }
 
   std::string mangle(const std::string &name) {

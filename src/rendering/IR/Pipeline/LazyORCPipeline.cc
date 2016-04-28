@@ -55,7 +55,6 @@ LazyORCPipeline::add_modules(ModuleSet &modules) {
     }
   );
 
-  fprintf(stderr, "addModuleSet for %lu modules\n", modules.size());
   return top_layer.addModuleSet(std::move(modules),
                                 std::make_unique<llvm::SectionMemoryManager>(),
                                 std::move(resolver));

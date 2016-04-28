@@ -27,7 +27,7 @@ SimpleORCPipeline::ModuleHandle
 SimpleORCPipeline::add_modules(ModuleSet &modules) {
   auto resolver = llvm::orc::createLambdaResolver(
     [&](const std::string &name) {
-      fprintf(stderr, "In resolver, looking for %s", name.c_str());
+      fprintf(stderr, "In resolver, looking for %s\n", name.c_str());
       if (auto symbol = find_symbol(name)) {
         return llvm::RuntimeDyld::SymbolInfo(symbol.getAddress(),
                                              symbol.getFlags());
