@@ -15,18 +15,19 @@
 
 SimpleORCPipeline::SimpleORCPipeline(IRRenderer *renderer)
   : ORCPipeline<SimpleORCPipeline, SimpleLayerSpec>(renderer,
-                                                    SimpleLayerSpec::TopLayer(object_layer, llvm::orc::SimpleCompiler(*llvm::EngineBuilder().selectTarget()))) { }
+                                                    SimpleLayerSpec::TopLayer(object_layer,
+                                                                              llvm::orc::SimpleCompiler(*llvm::EngineBuilder().selectTarget()))) { }
 
 void
 SimpleORCPipeline::process_function_node(FunctionNode *node) {
   renderer->render_function(node);
-  renderer->flush_modules();
 }
 
 SimpleORCPipeline::ModuleHandle
 SimpleORCPipeline::add_modules(ModuleSet &modules) {
   auto resolver = llvm::orc::createLambdaResolver(
     [&](const std::string &name) {
+      fprintf(stderr, "In resolver, looking for %s", name.c_str());
       if (auto symbol = find_symbol(name)) {
         return llvm::RuntimeDyld::SymbolInfo(symbol.getAddress(),
                                              symbol.getFlags());

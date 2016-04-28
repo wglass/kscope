@@ -11,12 +11,17 @@
 #include "llvm/IR/Instructions.h"
 #include "llvm/ExecutionEngine/Orc/JITSymbol.h"
 
-#include <map>
+#include <unordered_map>
+#include <vector>
 #include <string>
+
+
+struct PrototypeNode;
 
 
 enum class PipelineChoice { Simple, Lazy };
 typedef std::vector<std::unique_ptr<llvm::Module>> ModuleSet;
+typedef std::unordered_map<std::string, PrototypeNode *> ProtoMap;
 
 
 class IRRenderer : public Renderer {
@@ -30,7 +35,9 @@ public:
 
   void render_tree(std::shared_ptr<ASTree> tree);
 
-  llvm::orc::TargetAddress get_function(const std::string &name);
+  llvm::orc::TargetAddress get_symbol(const std::string &name);
+  PrototypeNode *get_prototype(const std::string &name);
+
   void flush_modules();
 
   llvm::Function *render_function(FunctionNode *node);
@@ -54,6 +61,6 @@ private:
 
   std::unique_ptr<Pipeline> pipeline;
   std::unique_ptr<IRContext> render_context;
-
   std::unique_ptr<ModuleSet> pending_modules;
+  std::unique_ptr<ProtoMap> proto_map;
 };

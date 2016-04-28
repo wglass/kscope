@@ -15,7 +15,8 @@
 
 
 IRRenderer::IRRenderer(PipelineChoice pipeline_choice)
-  : pending_modules(std::make_unique<ModuleSet>()) {
+  : pending_modules(std::make_unique<ModuleSet>()),
+    proto_map(std::make_unique<ProtoMap>()) {
   switch (pipeline_choice) {
   case PipelineChoice::Lazy:
     pipeline = std::make_unique<LazyORCPipeline>(this);
@@ -37,6 +38,7 @@ IRRenderer::operator =(IRRenderer other) {
     std::swap(render_context, other.render_context);
     std::swap(pipeline, other.pipeline);
     std::swap(pending_modules, other.pending_modules);
+    std::swap(proto_map, other.proto_map);
     return *this;
 }
 
@@ -44,6 +46,7 @@ IRRenderer::~IRRenderer() {
   pipeline.release();
   render_context.release();
   pending_modules.release();
+  proto_map.release();
 }
 
 void
@@ -51,15 +54,26 @@ IRRenderer::render_tree(std::shared_ptr<ASTree> tree) {
   auto &context = get_render_context();
 
   render(tree->root.get());
+
   pending_modules->push_back(context.give_up_module());
 }
 
 llvm::orc::TargetAddress
-IRRenderer::get_function(const std::string &name) {
+IRRenderer::get_symbol(const std::string &name) {
   flush_modules();
 
   auto symbol = pipeline->find_unmangled_symbol(name);
   return symbol.getAddress();
+}
+
+PrototypeNode *
+IRRenderer::get_prototype(const std::string &name) {
+  auto search = proto_map->find(name);
+  if ( search == proto_map->end() ) {
+    return nullptr;
+  }
+
+  return search->second;
 }
 
 IRContext &

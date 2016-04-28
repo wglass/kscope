@@ -27,7 +27,7 @@ class Renderer {
  public:
   virtual void render_tree(std::shared_ptr<ASTree> tree) = 0;
 
-  virtual llvm::orc::TargetAddress get_function(const std::string &name) = 0;
+  virtual llvm::orc::TargetAddress get_symbol(const std::string &name) = 0;
 
   llvm::Value *render(ASTNode *node) {
     return node->render(this);

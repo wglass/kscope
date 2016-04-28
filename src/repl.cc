@@ -35,7 +35,7 @@ int main() {
             }
 
             fprintf(stderr, "Getting function %s\n", func_node->proto->name.c_str());
-            auto func_ptr = renderer->get_function("__anon_expr");
+            auto func_ptr = renderer->get_symbol("__anon_expr");
             double (*func_pointer)() = (double(*)())(intptr_t)func_ptr;
             if ( func_pointer ) {
               fprintf(stderr, "Evaluated to: %f\n", func_pointer());

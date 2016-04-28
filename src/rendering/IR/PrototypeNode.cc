@@ -13,6 +13,8 @@
 
 llvm::Function *
 IRRenderer::render_node(PrototypeNode *node) {
+  proto_map->insert(std::make_pair(node->name, node));
+
   auto &context = get_render_context();
   auto &llvm_context = context.get_llvm_context();
   auto &module = context.get_module();

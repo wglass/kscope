@@ -69,13 +69,13 @@ LazyORCPipeline::remove_modules(LazyORCPipeline::ModuleHandle handle) {
 llvm::RuntimeDyld::SymbolInfo
 LazyORCPipeline::search_functions(const std::string &name) {
   fprintf(stderr, "Looking for function %s", name.c_str());
-  auto iter = functions.find(name);
-  if (iter == functions.end()) {
+  auto search = functions.find(name);
+  if ( search == functions.end() ) {
       return nullptr;
   }
 
-  auto function_node = iter->second;
-  functions.erase(iter);
+  auto function_node = search->second;
+  functions.erase(search);
 
   generate_stub(function_node);
   auto symbol = find_symbol(name);

@@ -12,13 +12,15 @@
 llvm::Value *
 IRRenderer::render_node(CallNode *node) {
   auto &context = get_render_context();
-  auto &module = context.get_module();
   auto &builder = context.get_builder();
 
-  llvm::Function *callee_func = module.getFunction(node->callee);
-  if ( callee_func == 0 ) {
+  auto callee = get_prototype(node->callee);
+
+  if ( callee == nullptr ) {
     return Error<llvm::Value>::handle("Unknown function referenced");
   }
+
+  auto callee_func = render_node(callee);
 
   if ( callee_func->arg_size() != node->args.size() ) {
     return Error<llvm::Value>::handle("Incorrect number of arguments passed");
@@ -30,5 +32,5 @@ IRRenderer::render_node(CallNode *node) {
     if ( arg_values.back() == 0 ) { return nullptr; }
   }
 
-  return builder.CreateCall(callee_func, arg_values, "calltmp");
+  return builder.CreateCall(callee_func, arg_values);
 }
