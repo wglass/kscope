@@ -15,7 +15,7 @@ int main() {
     llvm::InitializeNativeTargetAsmPrinter();
     llvm::InitializeNativeTargetAsmParser();
 
-    auto *renderer = new IRRenderer(PipelineChoice::Lazy);
+    auto *renderer = new IRRenderer(PipelineChoice::Simple);
 
     std::shared_ptr<ASTree> tree = std::make_shared<ASTree>();
 
@@ -38,8 +38,6 @@ int main() {
             double (*func_pointer)() = (double(*)())(intptr_t)func_ptr;
             if ( func_pointer ) {
               fprintf(stderr, "Evaluated to: %f\n", func_pointer());
-            } else {
-              fprintf(stderr, "Pointer was null!\n");
             }
           }
         }

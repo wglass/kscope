@@ -102,7 +102,6 @@ IRRenderer::flush_modules() {
   }
 
   if ( pending_modules->empty() ) {
-    fprintf(stderr, "No modules to flush!\n");
     return;
   }
 
