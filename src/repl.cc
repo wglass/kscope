@@ -28,13 +28,15 @@ int main() {
         if ( tree->root != 0 ) {
           renderer->render_tree(tree);
 
-          if ( FunctionNode *func_node = static_cast<FunctionNode*>(tree->root.get()) ) {
-            if ( func_node->proto->name != "__anon_expr" ) {
-              fprintf(stderr, "kscope> ");
-              continue;
-            }
+          FunctionNode *func_node = static_cast<FunctionNode*>(tree->root.get());
 
-            auto func_ptr = renderer->get_symbol("__anon_expr");
+          if ( func_node == nullptr ) {
+            fprintf(stderr, "kscope> ");
+            continue;
+          }
+
+          if ( func_node->proto->is_anon ) {
+            auto func_ptr = renderer->get_symbol(func_node->proto->name);
             double (*func_pointer)() = (double(*)())(intptr_t)func_ptr;
             if ( func_pointer ) {
               fprintf(stderr, "Evaluated to: %f\n", func_pointer());
