@@ -1,51 +1,66 @@
 #include "ast/FunctionNode.h"
 #include "parsing/ASTree.h"
 #include "rendering/IR/IRRenderer.h"
+#include "rendering/IR/Pipeline/SimpleORCPipeline.h"
+#include "rendering/IR/Pipeline/LazyORCPipeline.h"
 
-#include "llvm/Support/TargetSelect.h"
+#include "llvm/ADT/SmallVector.h"
 #include "llvm/IR/Function.h"
+#include "llvm/Support/TargetSelect.h"
+#include "llvm/Support/CommandLine.h"
 
 #include <iostream>
 #include <sstream>
 #include <string>
 
 
-int main() {
-    llvm::InitializeNativeTarget();
-    llvm::InitializeNativeTargetAsmPrinter();
-    llvm::InitializeNativeTargetAsmParser();
+int main(int argc, char** argv) {
+  llvm::cl::OptionCategory kscope_options("kscope options", "Options for the kscope compiler.");
 
-    auto *renderer = new IRRenderer(PipelineChoice::Lazy);
+  llvm::cl::opt<bool> lazy("lazy",
+                           llvm::cl::desc("Use the lazy compiling pipeline."),
+                           llvm::cl::cat(kscope_options));
 
-    std::shared_ptr<ASTree> tree = std::make_shared<ASTree>();
+  llvm::cl::HideUnrelatedOptions(kscope_options);
+  llvm::cl::ParseCommandLineOptions(argc, argv);
 
-    std::string input;
-    fprintf(stderr, "kscope> ");
-    while (std::getline(std::cin, input, ';')) {
-        std::istringstream iss(input);
+  llvm::InitializeNativeTarget();
+  llvm::InitializeNativeTargetAsmPrinter();
+  llvm::InitializeNativeTargetAsmParser();
 
-        tree->parse(iss);
-        if ( tree->root != 0 ) {
-          renderer->render_tree(tree);
+  auto pipeline_choice = lazy ? PipelineChoice::Lazy : PipelineChoice::Simple;
 
-          FunctionNode *func_node = static_cast<FunctionNode*>(tree->root.get());
+  auto *renderer = new IRRenderer(pipeline_choice);
 
-          if ( func_node == nullptr ) {
-            fprintf(stderr, "kscope> ");
-            continue;
-          }
+  std::shared_ptr<ASTree> tree = std::make_shared<ASTree>();
 
-          if ( func_node->proto->is_anon ) {
-            auto func_ptr = renderer->get_symbol(func_node->proto->name);
-            double (*func_pointer)() = (double(*)())(intptr_t)func_ptr;
-            fprintf(stderr, "Evaluated to: %f\n", func_pointer());
-          }
-        }
+  std::string input;
+  fprintf(stderr, "kscope> ");
+  while (std::getline(std::cin, input, ';')) {
+    std::istringstream iss(input);
 
+    tree->parse(iss);
+    if ( tree->root != 0 ) {
+      renderer->render_tree(tree);
+
+      FunctionNode *func_node = static_cast<FunctionNode*>(tree->root.get());
+
+      if ( func_node == nullptr ) {
         fprintf(stderr, "kscope> ");
+        continue;
+      }
+
+      if ( func_node->proto->is_anon ) {
+        auto func_ptr = renderer->get_symbol(func_node->proto->name);
+        double (*func_pointer)() = (double(*)())(intptr_t)func_ptr;
+        fprintf(stderr, "Evaluated to: %f\n", func_pointer());
+      }
     }
 
-    return 0;
+    fprintf(stderr, "kscope> ");
+  }
+
+  return 0;
 }
 
 /// putchard - putchar that takes a double and returns 0.
