@@ -34,6 +34,8 @@ public:
 
   void process_function_node(FunctionNode *node);
 
+  llvm::orc::JITSymbol find_symbol(const std::string &name);
+
   ModuleHandle add_modules(ModuleSet &modules);
   void remove_modules(ModuleHandle handle);
 
@@ -45,6 +47,6 @@ private:
 
   std::map<std::string, FunctionNode *> functions;
 
-  llvm::RuntimeDyld::SymbolInfo search_functions(const std::string &name);
+  llvm::orc::JITSymbol search_functions(const std::string &name);
   void generate_stub(FunctionNode *node);
 };

@@ -15,7 +15,7 @@ int main() {
     llvm::InitializeNativeTargetAsmPrinter();
     llvm::InitializeNativeTargetAsmParser();
 
-    auto *renderer = new IRRenderer(PipelineChoice::Simple);
+    auto *renderer = new IRRenderer(PipelineChoice::Lazy);
 
     std::shared_ptr<ASTree> tree = std::make_shared<ASTree>();
 
@@ -38,9 +38,7 @@ int main() {
           if ( func_node->proto->is_anon ) {
             auto func_ptr = renderer->get_symbol(func_node->proto->name);
             double (*func_pointer)() = (double(*)())(intptr_t)func_ptr;
-            if ( func_pointer ) {
-              fprintf(stderr, "Evaluated to: %f\n", func_pointer());
-            }
+            fprintf(stderr, "Evaluated to: %f\n", func_pointer());
           }
         }
 

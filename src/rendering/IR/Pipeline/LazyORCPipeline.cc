@@ -32,11 +32,18 @@ LazyORCPipeline::LazyORCPipeline(IRRenderer *renderer)
 
 void
 LazyORCPipeline::process_function_node(FunctionNode *node) {
-  if ( node->proto->name == "__anon_expr" ) {
-    renderer->render_function(node);
+  functions[mangle(node->proto->name)] = node;
+}
+
+llvm::orc::JITSymbol
+LazyORCPipeline::find_symbol(const std::string &name) {
+  auto symbol = top_layer.findSymbol(name, false);
+
+  if ( ! symbol ) {
+    symbol = search_functions(name);
   }
 
-  functions[mangle(node->proto->name)] = node;
+  return symbol;
 }
 
 LazyORCPipeline::ModuleHandle
@@ -46,12 +53,13 @@ LazyORCPipeline::add_modules(ModuleSet &modules) {
   // JIT.
   auto resolver = llvm::orc::createLambdaResolver(
     [&](const std::string &name) {
-      if (auto symbol = find_symbol(name)) {
-        return llvm::RuntimeDyld::SymbolInfo(symbol.getAddress(),
-                                             symbol.getFlags());
-      } else {
-        return search_functions(name);
+      auto symbol = find_symbol(name);
+      if ( ! symbol ) {
+        symbol = search_functions(name);
       }
+
+      return llvm::RuntimeDyld::SymbolInfo(symbol.getAddress(),
+                                           symbol.getFlags());
     },
     [](const std::string &name) {
       return nullptr;
@@ -68,7 +76,7 @@ LazyORCPipeline::remove_modules(LazyORCPipeline::ModuleHandle handle) {
   top_layer.removeModuleSet(handle);
 }
 
-llvm::RuntimeDyld::SymbolInfo
+llvm::orc::JITSymbol
 LazyORCPipeline::search_functions(const std::string &name) {
   auto search = functions.find(name);
   if ( search == functions.end() ) {
@@ -79,9 +87,8 @@ LazyORCPipeline::search_functions(const std::string &name) {
   functions.erase(search);
 
   generate_stub(function_node);
-  auto symbol = find_symbol_in(previous_flush, name);
 
-  return llvm::RuntimeDyld::SymbolInfo(symbol.getAddress(), symbol.getFlags());
+  return find_symbol_in(previous_flush, name);
 }
 
 void
