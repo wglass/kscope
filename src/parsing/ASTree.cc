@@ -25,11 +25,12 @@ ASTree::~ASTree() {
 }
 
 void
-ASTree::parse(std::istream &input) {
+ASTree::parse(std::istream &input_stream) {
     root.release();
 
-    Lexer lexer = Lexer(&input);
-    bison::Parser *parser = new bison::Parser(lexer,
+    auto lex = std::make_unique<Lexer>(&input_stream);
+
+    bison::Parser *parser = new bison::Parser(*lex,
                                               *this);
     parser->parse();
 }

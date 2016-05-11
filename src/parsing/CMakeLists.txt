@@ -1,5 +1,5 @@
 find_package(BISON)
-find_package(FLEX)
+find_package(FLEX 2.6.0)
 
 BISON_TARGET(parser
   ${CMAKE_CURRENT_SOURCE_DIR}/grammar.yy

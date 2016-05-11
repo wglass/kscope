@@ -3,7 +3,7 @@
 
 
 Lexer::Lexer(std::istream *in)
-    : yyFlexLexer(in), yylval(nullptr) {}
+  : yyFlexLexer(in, nullptr) {}
 
 int
 Lexer::yylex(bison::Parser::semantic_type *l_val) {

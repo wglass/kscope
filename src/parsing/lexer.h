@@ -11,11 +11,14 @@
 
 
 class Lexer : public yyFlexLexer {
-    int yylex();
-    bison::Parser::semantic_type *yylval;
 
 public:
-    Lexer(std::istream *in);
+  Lexer(std::istream *in);
 
-    int yylex(bison::Parser::semantic_type *l_val);
+  int yylex(bison::Parser::semantic_type *l_val);
+
+private:
+  Lexer(Lexer &other) = delete;
+  int yylex();
+  bison::Parser::semantic_type *yylval;
 };
