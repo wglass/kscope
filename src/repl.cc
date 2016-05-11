@@ -1,11 +1,10 @@
-#include "ast/FunctionNode.h"
-#include "parsing/ASTree.h"
-#include "rendering/IR/IRRenderer.h"
-#include "rendering/IR/Pipeline/SimpleORCPipeline.h"
-#include "rendering/IR/Pipeline/LazyORCPipeline.h"
+#include "kscope/AST/ASTree.h"
+#include "kscope/AST/FunctionNode.h"
 
-#include "llvm/ADT/SmallVector.h"
-#include "llvm/IR/Function.h"
+#include "Render/IR/IRRenderer.h"
+#include "Render/IR/Pipeline/SimpleORCPipeline.h"
+#include "Render/IR/Pipeline/LazyORCPipeline.h"
+
 #include "llvm/Support/TargetSelect.h"
 #include "llvm/Support/CommandLine.h"
 
@@ -15,7 +14,8 @@
 
 
 int main(int argc, char** argv) {
-  llvm::cl::OptionCategory kscope_options("kscope options", "Options for the kscope compiler.");
+  llvm::cl::OptionCategory kscope_options("kscope options",
+                                          "Options for the kscope compiler.");
 
   llvm::cl::opt<bool> lazy("lazy",
                            llvm::cl::desc("Use the lazy compiling pipeline."),

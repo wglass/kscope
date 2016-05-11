@@ -1,7 +1,7 @@
 file(GLOB KSCOPE_SOURCES *.cc)
 
-add_subdirectory(parsing)
-add_subdirectory(rendering)
+add_subdirectory(Parse)
+add_subdirectory(Render)
 
 add_executable(kscope ${KSCOPE_SOURCES})
 

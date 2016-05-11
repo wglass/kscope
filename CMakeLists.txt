@@ -16,7 +16,7 @@ project(kscope)
 
 find_package(LLVM REQUIRED CONFIG)
 
-include_directories( src ${LLVM_INCLUDE_DIRS} )
+include_directories( include src ${LLVM_INCLUDE_DIRS} )
 link_directories( ${LLVM_LIBRARY_DIRS} )
 
 set(CMAKE_BUILD_TYPE Debug)
