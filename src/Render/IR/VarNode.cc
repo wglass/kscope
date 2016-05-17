@@ -24,7 +24,7 @@ IRRenderer::render_node(VarNode *node) {
 
   auto zero = llvm::ConstantFP::get(llvm_context, llvm::APFloat(0.0));
 
-  llvm::Function *func = builder.GetInsertBlock()->getParent();
+  auto *func = builder.GetInsertBlock()->getParent();
 
   for ( auto &var_pair : node->var_names ) {
     const std::string &var_name = var_pair.first;
@@ -38,14 +38,14 @@ IRRenderer::render_node(VarNode *node) {
       init_val = zero;
     }
 
-    llvm::AllocaInst *alloca = context.create_entry_block_alloca(func, var_name);
+    auto *alloca = context.create_entry_block_alloca(func, var_name);
     builder.CreateStore(init_val, alloca);
 
     old_bindings.push_back(context.get_named_value(var_name));
     context.set_named_value(var_name, alloca);
   }
 
-  llvm::Value *body_val = render(node->body);
+  auto *body_val = render(node->body);
   if ( body_val == 0 ) { return nullptr; }
 
   std::size_t index = 0;

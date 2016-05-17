@@ -14,15 +14,15 @@ IRRenderer::render_node(BinaryNode *node) {
   auto &builder = context.get_builder();
 
   if ( node->op == '=' ) {
-    VariableNode *lhse = static_cast<VariableNode*>(node->lhs);
+    auto *lhse = static_cast<VariableNode*>(node->lhs);
     if ( ! lhse ) {
       return Error<llvm::Value>::handle("destination of '=' must be a variable");
     }
 
-    llvm::Value *val = render(node->rhs);
+    auto *val = render(node->rhs);
     if ( val == 0 ) { return nullptr; }
 
-    llvm::Value *variable = context.get_named_value(lhse->getName());
+    auto *variable = context.get_named_value(lhse->getName());
     if ( variable == 0 ) {
       return Error<llvm::Value>::handle("Unknown variable name");
     }
@@ -32,17 +32,20 @@ IRRenderer::render_node(BinaryNode *node) {
     return val;
   }
 
-  llvm::Value *left = render(node->lhs);
-  llvm::Value *right = render(node->rhs);
+  auto *left = render(node->lhs);
+  auto *right = render(node->rhs);
 
   if (left == 0 || right == 0 ) { return nullptr; }
 
-  llvm::Type *llvm_double_type = llvm::Type::getDoubleTy(context.get_llvm_context());
+  auto *llvm_double_type = llvm::Type::getDoubleTy(context.get_llvm_context());
 
   switch (node->op) {
-  case '+': return builder.CreateFAdd(left, right, "addtmp");
-  case '-': return builder.CreateFSub(left, right, "subtmp");
-  case '*': return builder.CreateFMul(left, right, "multmp");
+  case '+':
+    return builder.CreateFAdd(left, right, "addtmp");
+  case '-':
+    return builder.CreateFSub(left, right, "subtmp");
+  case '*':
+    return builder.CreateFMul(left, right, "multmp");
   case '<':
     left = builder.CreateFCmpULT(left, right, "cmptmp");
     return builder.CreateUIToFP(left,

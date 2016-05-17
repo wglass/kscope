@@ -13,10 +13,10 @@ IRRenderer::render_node(UnaryNode *node) {
   auto &module = context.get_module();
   auto &builder = context.get_builder();
 
-  llvm::Value *operand_value = render(node->operand);
+  auto *operand_value = render(node->operand);
   if ( operand_value == 0 ) { return nullptr; }
 
-  llvm::Function *func = module.getFunction(std::string("unary") + node->opcode);
+  auto *func = module.getFunction(std::string("unary") + node->opcode);
   if ( func == 0 ) {
     return Error<llvm::Value>::handle("Unknown unary operator");
   }

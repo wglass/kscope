@@ -10,7 +10,7 @@ llvm::Value *
 IRRenderer::render_node(VariableNode *node) {
   auto &context = get_render_context();
 
-  llvm::Value *val = context.get_named_value(node->name);
+  auto *val = context.get_named_value(node->name);
   if ( !val ) {
     return Error<llvm::Value>::handle("Unknown variable name");
   }
