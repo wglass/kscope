@@ -10,7 +10,7 @@
 
 
 llvm::Value *
-IRRenderer::render_node(CallNode *node) {
+IRRenderer::visit_node(CallNode *node) {
   auto &context = get_render_context();
   auto &module = context.get_module();
   auto &builder = context.get_builder();
@@ -22,7 +22,7 @@ IRRenderer::render_node(CallNode *node) {
     if ( callee == nullptr ) {
       return Error<llvm::Value>::handle("Unknown function referenced");
     }
-    callee_func = static_cast<llvm::Function*>(render(callee));
+    callee_func = static_cast<llvm::Function*>(visit(callee));
   }
 
   if ( callee_func->arg_size() != node->args.size() ) {
@@ -31,7 +31,7 @@ IRRenderer::render_node(CallNode *node) {
 
   std::vector<llvm::Value*> arg_values;
   for ( auto &arg : node->args ) {
-    arg_values.push_back(render(arg));
+    arg_values.push_back(visit(arg));
     if ( arg_values.back() == 0 ) { return nullptr; }
   }
 

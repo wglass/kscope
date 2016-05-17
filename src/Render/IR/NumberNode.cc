@@ -8,7 +8,7 @@
 
 
 llvm::Value *
-IRRenderer::render_node(NumberNode *node) {
+IRRenderer::visit_node(NumberNode *node) {
   auto &context = get_render_context();
   auto &llvm_context = context.get_llvm_context();
 

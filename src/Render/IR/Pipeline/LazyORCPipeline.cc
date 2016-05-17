@@ -94,7 +94,7 @@ LazyORCPipeline::search_functions(const std::string &name) {
 
 void
 LazyORCPipeline::generate_stub(FunctionNode *node) {
-  llvm::Function *func = static_cast<llvm::Function*>(renderer->render(node->proto));
+  auto *proto = static_cast<llvm::Function*>(renderer->visit(node->proto));
 
   // Step 2) Get a compile callback that can be used to compile the body of
   //         the function. The resulting CallbackInfo type will let us set the
@@ -105,15 +105,14 @@ LazyORCPipeline::generate_stub(FunctionNode *node) {
   // Step 3) Create a stub that will indirectly call the body of this
   //         function once it is compiled. Initially, set the function
   //         pointer for the indirection to point at the trampoline.
-  std::string body_ptr_name = (func->getName() + "$address").str();
-  llvm::GlobalVariable *body_ptr =
-    llvm::orc::createImplPointer(*func->getType(),
-                                 *func->getParent(),
-                                 body_ptr_name,
-                                 llvm::orc::createIRTypedAddress(*func->getFunctionType(),
-                                                                 callback_info.getAddress()));
+  auto body_ptr_name = (proto->getName() + "$address").str();
+  auto *body_ptr = llvm::orc::createImplPointer(*proto->getType(),
+                                                *proto->getParent(),
+                                                body_ptr_name,
+                                                llvm::orc::createIRTypedAddress(*proto->getFunctionType(),
+                                                                                callback_info.getAddress()));
 
-  llvm::orc::makeStub(*func, *body_ptr);
+  llvm::orc::makeStub(*proto, *body_ptr);
 
   // Step 4) Add the module containing the stub to the JIT.
   renderer->flush_modules();

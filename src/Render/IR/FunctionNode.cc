@@ -11,7 +11,7 @@
 
 
 llvm::Value *
-IRRenderer::render_node(FunctionNode *node) {
+IRRenderer::visit_node(FunctionNode *node) {
   proto_map->insert(std::make_pair(node->proto->name, node->proto));
   pipeline->process_function_node(node);
   return nullptr;
@@ -26,7 +26,7 @@ IRRenderer::render_function(FunctionNode *node) {
 
   context.clear_all_named_values();
 
-  auto *func = static_cast<llvm::Function*>(render_node(node->proto));
+  auto *func = static_cast<llvm::Function*>(visit(node->proto));
   if ( func == 0 ) { return nullptr; }
 
   auto *block = llvm::BasicBlock::Create(context.get_llvm_context(),
@@ -36,7 +36,7 @@ IRRenderer::render_function(FunctionNode *node) {
 
   context.create_argument_allocas(func, node->proto->args);
 
-  auto *retval = render(node->body);
+  auto *retval = visit(node->body);
 
   if ( ! retval ) {
     func->eraseFromParent();

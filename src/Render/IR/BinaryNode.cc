@@ -9,7 +9,7 @@
 
 
 llvm::Value *
-IRRenderer::render_node(BinaryNode *node) {
+IRRenderer::visit_node(BinaryNode *node) {
   auto &context = get_render_context();
   auto &builder = context.get_builder();
 
@@ -19,7 +19,7 @@ IRRenderer::render_node(BinaryNode *node) {
       return Error<llvm::Value>::handle("destination of '=' must be a variable");
     }
 
-    auto *val = render(node->rhs);
+    auto *val = visit(node->rhs);
     if ( val == 0 ) { return nullptr; }
 
     auto *variable = context.get_named_value(lhse->getName());
@@ -32,8 +32,8 @@ IRRenderer::render_node(BinaryNode *node) {
     return val;
   }
 
-  auto *left = render(node->lhs);
-  auto *right = render(node->rhs);
+  auto *left = visit(node->lhs);
+  auto *right = visit(node->rhs);
 
   if (left == 0 || right == 0 ) { return nullptr; }
 

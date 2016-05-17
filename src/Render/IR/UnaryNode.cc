@@ -8,12 +8,12 @@
 
 
 llvm::Value *
-IRRenderer::render_node(UnaryNode *node) {
+IRRenderer::visit_node(UnaryNode *node) {
   auto &context = get_render_context();
   auto &module = context.get_module();
   auto &builder = context.get_builder();
 
-  auto *operand_value = render(node->operand);
+  auto *operand_value = visit(node->operand);
   if ( operand_value == 0 ) { return nullptr; }
 
   auto *func = module.getFunction(std::string("unary") + node->opcode);

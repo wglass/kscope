@@ -41,7 +41,7 @@ public:
   llvm::Function *render_function(FunctionNode *node);
 
 #define AST_NODE(NODE_NAME) \
-  virtual llvm::Value *render_node(NODE_NAME##Node *node) override;
+  virtual llvm::Value *visit_node(NODE_NAME##Node *node) override;
 #include "kscope/AST/ASTNodes.def"
 
 private:

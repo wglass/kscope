@@ -30,9 +30,9 @@ int main(int argc, char** argv) {
 
   auto pipeline_choice = lazy ? PipelineChoice::Lazy : PipelineChoice::Simple;
 
-  auto *renderer = new IRRenderer(pipeline_choice);
+  auto renderer = std::make_unique<IRRenderer>(pipeline_choice);
 
-  std::shared_ptr<ASTree> tree = std::make_shared<ASTree>();
+  auto tree = std::make_shared<ASTree>();
 
   std::string input;
   fprintf(stderr, "kscope> ");
@@ -41,7 +41,7 @@ int main(int argc, char** argv) {
 
     tree->parse(iss);
     if ( tree->root != 0 ) {
-      renderer->render_tree(tree);
+      renderer->visit(tree->root.get());
 
       FunctionNode *func_node = static_cast<FunctionNode*>(tree->root.get());
 

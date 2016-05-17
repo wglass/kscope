@@ -12,7 +12,7 @@
 
 
 llvm::Value *
-IRRenderer::render_node(ForNode *node) {
+IRRenderer::visit_node(ForNode *node) {
   auto &context = get_render_context();
   auto &llvm_context = context.get_llvm_context();
   auto &builder = context.get_builder();
@@ -25,7 +25,7 @@ IRRenderer::render_node(ForNode *node) {
   auto *alloca = context.create_entry_block_alloca(func,
                                                    node->var_name);
 
-  auto *start_value = render(node->start);
+  auto *start_value = visit(node->start);
   if ( start_value == 0 ) { return nullptr; }
 
   builder.CreateStore(start_value, alloca);
@@ -39,17 +39,17 @@ IRRenderer::render_node(ForNode *node) {
   auto *old_value = context.get_named_value(node->var_name);
   context.set_named_value(node->var_name, alloca);
 
-  if ( render(node->body) == 0 ) { return nullptr; }
+  if ( visit(node->body) == 0 ) { return nullptr; }
 
   llvm::Value *step_value;
   if ( node->step ) {
-    step_value = render(node->step);
+    step_value = visit(node->step);
     if ( step_value == 0 ) { return nullptr; }
   } else {
     step_value = one;
   }
 
-  auto *end_condition = render(node->end);
+  auto *end_condition = visit(node->end);
   if ( end_condition == 0 ) { return nullptr; }
 
   auto *current_var = builder.CreateLoad(alloca, node->var_name.c_str());

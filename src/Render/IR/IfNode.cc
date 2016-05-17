@@ -9,14 +9,14 @@
 
 
 llvm::Value *
-IRRenderer::render_node(IfNode *node) {
+IRRenderer::visit_node(IfNode *node) {
   auto &context = get_render_context();
   auto &llvm_context = context.get_llvm_context();
   auto &builder = context.get_builder();
 
   auto zero = llvm::ConstantFP::get(llvm_context, llvm::APFloat(0.0));
 
-  auto *cond_value = render(node->condition);
+  auto *cond_value = visit(node->condition);
   if ( cond_value == 0 ) { return nullptr; }
 
   cond_value = builder.CreateFCmpONE(cond_value, zero, "ifcond");
@@ -30,7 +30,7 @@ IRRenderer::render_node(IfNode *node) {
   builder.CreateCondBr(cond_value, then_block, else_block);
   builder.SetInsertPoint(then_block);
 
-  auto *then_value = render(node->then);
+  auto *then_value = visit(node->then);
   if ( then_value == 0 ) { return nullptr; }
 
 
@@ -40,7 +40,7 @@ IRRenderer::render_node(IfNode *node) {
   func->getBasicBlockList().push_back(else_block);
   builder.SetInsertPoint(else_block);
 
-  auto *else_value = render(node->_else);
+  auto *else_value = visit(node->_else);
   if ( else_value == 0 ) { return nullptr; }
 
   builder.CreateBr(merge_block);

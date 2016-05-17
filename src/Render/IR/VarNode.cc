@@ -15,7 +15,7 @@
 
 
 llvm::Value *
-IRRenderer::render_node(VarNode *node) {
+IRRenderer::visit_node(VarNode *node) {
   auto &context = get_render_context();
   auto &llvm_context = context.get_llvm_context();
   auto &builder = context.get_builder();
@@ -32,7 +32,7 @@ IRRenderer::render_node(VarNode *node) {
 
     llvm::Value *init_val;
     if ( init ) {
-      init_val = render(init);
+      init_val = visit(init);
       if ( init_val == 0 ) { return nullptr; }
     } else {
       init_val = zero;
@@ -45,7 +45,7 @@ IRRenderer::render_node(VarNode *node) {
     context.set_named_value(var_name, alloca);
   }
 
-  auto *body_val = render(node->body);
+  auto *body_val = visit(node->body);
   if ( body_val == 0 ) { return nullptr; }
 
   std::size_t index = 0;
