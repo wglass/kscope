@@ -1,15 +1,13 @@
 #pragma once
 
-#include "llvm/IR/Value.h"
 
-#include <utility>
-#include <string>
-
-
-class Renderer;
+enum class ASTNodeKind {
+#define AST_NODE(NODE_NAME) NODE_NAME,
+#include "kscope/AST/ASTNodes.def"
+};
 
 struct ASTNode {
-  virtual ~ASTNode() {};
+  ASTNodeKind kind;
 
-  virtual llvm::Value *render(Renderer *renderer) = 0;
+  ASTNode(ASTNodeKind kind) : kind(kind) {};
 };

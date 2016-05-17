@@ -4,19 +4,12 @@
 
 #include "PrototypeNode.h"
 
-#include "kscope/Render/Renderer.h"
-
-#include "llvm/IR/Value.h"
-
 
 struct FunctionNode : public ASTNode {
   PrototypeNode *proto;
   ASTNode *body;
 
   FunctionNode(PrototypeNode *proto, ASTNode *body)
-    : proto(proto), body(body) {};
-
-  llvm::Value * render(Renderer *renderer) {
-    return renderer->render_node(this);
-  }
+    : ASTNode(ASTNodeKind::Function),
+      proto(proto), body(body) {};
 };

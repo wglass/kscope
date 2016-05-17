@@ -7,6 +7,9 @@
 #include "lexer.h"
 #include "bison_parser.hh"
 
+#include <memory>
+#include <iostream>
+
 
 ASTree::ASTree() : root(nullptr) {}
 

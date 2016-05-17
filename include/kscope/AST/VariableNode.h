@@ -2,20 +2,15 @@
 
 #include "ASTNode.h"
 
-#include "kscope/Render/Renderer.h"
-
-#include "llvm/IR/Value.h"
-
 #include <string>
 
 
 struct VariableNode : public ASTNode {
   std::string name;
 
-  VariableNode(const std::string &name) : name(name) {};
-  const std::string getName() const { return name; };
+  VariableNode(const std::string &name)
+    : ASTNode(ASTNodeKind::Variable),
+      name(name) {};
 
-  llvm::Value * render(Renderer *renderer) {
-    return renderer->render_node(this);
-  }
+  const std::string getName() const { return name; };
 };

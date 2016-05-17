@@ -94,7 +94,7 @@ LazyORCPipeline::search_functions(const std::string &name) {
 
 void
 LazyORCPipeline::generate_stub(FunctionNode *node) {
-  llvm::Function *func = renderer->render_node(node->proto);
+  llvm::Function *func = static_cast<llvm::Function*>(renderer->render(node->proto));
 
   // Step 2) Get a compile callback that can be used to compile the body of
   //         the function. The resulting CallbackInfo type will let us set the

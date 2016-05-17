@@ -2,10 +2,6 @@
 
 #include "ASTNode.h"
 
-#include "kscope/Render/Renderer.h"
-
-#include "llvm/IR/Value.h"
-
 #include <string>
 #include <vector>
 
@@ -26,12 +22,10 @@ struct PrototypeNode : public ASTNode {
   bool is_anon;
 
   PrototypeNode(const std::string &name, const std::vector<std::string> &args)
-    : name(name), args(args), is_anon(false) { };
+    : ASTNode(ASTNodeKind::Prototype),
+      name(name), args(args), is_anon(false) { };
 
   PrototypeNode(const std::vector<std::string> &args)
-    : name(generate_anon_expr_name()), args(args), is_anon(true) { };
-
-  llvm::Value * render(Renderer *renderer) {
-    return renderer->render_node(this);
-  }
+    : ASTNode(ASTNodeKind::Prototype),
+      name(generate_anon_expr_name()), args(args), is_anon(true) { };
 };

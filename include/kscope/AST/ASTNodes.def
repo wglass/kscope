@@ -1,0 +1,24 @@
+#ifndef AST_NODE
+#define AST_NODE(NODE_NAME)
+#endif
+
+#ifndef TOP_AST_NODE
+#define TOP_AST_NODE(NODE_NAME) AST_NODE(NODE_NAME)
+#endif
+
+TOP_AST_NODE(Function)
+TOP_AST_NODE(Prototype)
+
+AST_NODE(Call)
+
+AST_NODE(Binary)
+AST_NODE(Unary)
+
+AST_NODE(For)
+AST_NODE(If)
+
+AST_NODE(Number)
+AST_NODE(Var)
+AST_NODE(Variable)
+
+#undef AST_NODE

@@ -1,8 +1,10 @@
 #pragma once
 
-#include "ASTNode.h"
+#include <memory>
+#include <iostream>
 
 
+struct ASTNode;
 struct FunctionNode;
 struct PrototypeNode;
 

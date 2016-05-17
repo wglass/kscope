@@ -62,11 +62,6 @@ IRRenderer::get_data_layout() {
   return data_layout;
 }
 
-void
-IRRenderer::render_tree(std::shared_ptr<ASTree> tree) {
-  render(tree->root.get());
-}
-
 llvm::orc::TargetAddress
 IRRenderer::get_symbol(const std::string &name) {
   flush_modules();

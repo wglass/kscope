@@ -14,7 +14,7 @@ IRRenderer::render_node(BinaryNode *node) {
   auto &builder = context.get_builder();
 
   if ( node->op == '=' ) {
-    VariableNode *lhse = dynamic_cast<VariableNode*>(node->lhs);
+    VariableNode *lhse = static_cast<VariableNode*>(node->lhs);
     if ( ! lhse ) {
       return Error<llvm::Value>::handle("destination of '=' must be a variable");
     }

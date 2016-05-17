@@ -10,7 +10,7 @@
 #include <iostream>
 
 
-llvm::Function *
+llvm::Value *
 IRRenderer::render_node(FunctionNode *node) {
   proto_map->insert(std::make_pair(node->proto->name, node->proto));
   pipeline->process_function_node(node);
@@ -26,17 +26,17 @@ IRRenderer::render_function(FunctionNode *node) {
 
   context.clear_all_named_values();
 
-  llvm::Function *func = render_node(node->proto);
+  auto *func = static_cast<llvm::Function*>(render_node(node->proto));
   if ( func == 0 ) { return nullptr; }
 
-  llvm::BasicBlock *block = llvm::BasicBlock::Create(context.get_llvm_context(),
-                                                     "entry",
-                                                     func);
+  auto *block = llvm::BasicBlock::Create(context.get_llvm_context(),
+                                         "entry",
+                                         func);
   builder.SetInsertPoint(block);
 
   context.create_argument_allocas(func, node->proto->args);
 
-  llvm::Value *retval = render(node->body);
+  auto *retval = render(node->body);
 
   if ( ! retval ) {
     func->eraseFromParent();

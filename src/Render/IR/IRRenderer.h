@@ -1,9 +1,9 @@
 #pragma once
 
-#include "kscope/Render/Renderer.h"
-
 #include "IRContext.h"
 #include "Pipeline/Pipeline.h"
+
+#include "kscope/AST/ASTVisitor.h"
 
 #include "llvm/ExecutionEngine/Orc/JITSymbol.h"
 #include "llvm/IR/Function.h"
@@ -16,14 +16,13 @@
 
 
 struct PrototypeNode;
-class ASTree;
 
 enum class PipelineChoice { Simple, Lazy };
 typedef std::vector<std::unique_ptr<llvm::Module>> ModuleSet;
 typedef std::unordered_map<std::string, PrototypeNode *> ProtoMap;
 
 
-class IRRenderer : public Renderer {
+class IRRenderer : public ASTVisitor<IRRenderer, llvm::Value> {
 
 public:
 
@@ -34,8 +33,6 @@ public:
   const llvm::DataLayout get_data_layout();
   IRContext & get_render_context();
 
-  void render_tree(std::shared_ptr<ASTree> tree);
-
   llvm::orc::TargetAddress get_symbol(const std::string &name);
   PrototypeNode *get_prototype(const std::string &name);
 
@@ -43,16 +40,9 @@ public:
 
   llvm::Function *render_function(FunctionNode *node);
 
-  llvm::Function *render_node(FunctionNode *node);
-  llvm::Function *render_node(PrototypeNode *node);
-  llvm::Value *render_node(BinaryNode *node);
-  llvm::Value *render_node(CallNode *node);
-  llvm::Value *render_node(ForNode *node);
-  llvm::Value *render_node(IfNode *node);
-  llvm::Value *render_node(NumberNode *node);
-  llvm::Value *render_node(UnaryNode *node);
-  llvm::Value *render_node(VarNode *node);
-  llvm::Value *render_node(VariableNode *node);
+#define AST_NODE(NODE_NAME) \
+  virtual llvm::Value *render_node(NODE_NAME##Node *node) override;
+#include "kscope/AST/ASTNodes.def"
 
 private:
   IRRenderer(const IRRenderer &other) = delete;

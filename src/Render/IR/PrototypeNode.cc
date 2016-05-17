@@ -11,7 +11,7 @@
 #include <vector>
 
 
-llvm::Function *
+llvm::Value *
 IRRenderer::render_node(PrototypeNode *node) {
   auto &context = get_render_context();
   auto &llvm_context = context.get_llvm_context();
@@ -21,14 +21,14 @@ IRRenderer::render_node(PrototypeNode *node) {
 
   std::vector<llvm::Type*> doubles(node->args.size(), double_type);
 
-  llvm::FunctionType *func_type = llvm::FunctionType::get(double_type,
-                                                          doubles,
-                                                          false);
+  auto *func_type = llvm::FunctionType::get(double_type,
+                                            doubles,
+                                            false);
 
-  llvm::Function *func = llvm::Function::Create(func_type,
-                                                llvm::Function::ExternalLinkage,
-                                                node->name,
-                                                &module);
+  auto *func = llvm::Function::Create(func_type,
+                                      llvm::Function::ExternalLinkage,
+                                      node->name,
+                                      &module);
 
   if ( func->getName() != node->name ) {
     func->eraseFromParent();
@@ -42,7 +42,7 @@ IRRenderer::render_node(PrototypeNode *node) {
     }
   }
 
-  llvm::Function::arg_iterator iterator = func->arg_begin();
+  auto iterator = func->arg_begin();
   for ( auto &arg : node->args ) {
     llvm::Argument *val = &(*iterator++);
     val->setName(arg);

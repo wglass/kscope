@@ -22,7 +22,7 @@ IRRenderer::render_node(CallNode *node) {
     if ( callee == nullptr ) {
       return Error<llvm::Value>::handle("Unknown function referenced");
     }
-    callee_func = render_node(callee);
+    callee_func = static_cast<llvm::Function*>(render(callee));
   }
 
   if ( callee_func->arg_size() != node->args.size() ) {

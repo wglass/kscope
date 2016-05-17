@@ -2,19 +2,11 @@
 
 #include "ASTNode.h"
 
-#include "kscope/Render/Renderer.h"
-
-#include "llvm/IR/Value.h"
-
 #include <string>
 
 
 struct NumberNode : public ASTNode {
   double val;
 
-  NumberNode(double val) : val(val) {};
-
-  llvm::Value * render(Renderer *renderer) {
-    return renderer->render_node(this);
-  }
+  NumberNode(double val) : ASTNode(ASTNodeKind::Number), val(val) {};
 };
