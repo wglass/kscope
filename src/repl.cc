@@ -1,5 +1,5 @@
+#include "kscope/AST/ASTNodes.h"
 #include "kscope/AST/ASTree.h"
-#include "kscope/AST/FunctionNode.h"
 
 #include "Render/IR/IRRenderer.h"
 #include "Render/IR/Pipeline/SimpleORCPipeline.h"
@@ -40,15 +40,17 @@ int main(int argc, char** argv) {
     std::istringstream iss(input);
 
     tree->parse(iss);
-    if ( tree->root != 0 ) {
-      renderer->visit(tree->root.get());
+    if ( ! tree->root ) {
+      continue;
+    }
 
-      FunctionNode *func_node = static_cast<FunctionNode*>(tree->root.get());
+    renderer->visit(tree->root.get());
 
-      if ( func_node == nullptr ) {
-        fprintf(stderr, "kscope> ");
-        continue;
-      }
+    if ( tree->root->kind == ASTNodeKind::Prototype ) {
+      auto *proto_node = static_cast<PrototypeNode*>(tree->root.get());
+      fprintf(stderr, "Added new extern: %s\n", proto_node->name.c_str());
+    } else if ( tree->root->kind == ASTNodeKind::Function ) {
+      auto *func_node = static_cast<FunctionNode*>(tree->root.get());
 
       if ( func_node->proto->is_anon ) {
         auto func_ptr = renderer->get_symbol(func_node->proto->name);

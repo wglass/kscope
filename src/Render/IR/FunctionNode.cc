@@ -12,7 +12,6 @@
 
 llvm::Value *
 IRRenderer::visit_node(FunctionNode *node) {
-  proto_map->insert(std::make_pair(node->proto->name, node->proto));
   pipeline->process_function_node(node);
   return nullptr;
 }

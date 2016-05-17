@@ -1,8 +1,6 @@
 #include "kscope/AST/ASTree.h"
 
-#include "kscope/AST/ASTNode.h"
-#include "kscope/AST/FunctionNode.h"
-#include "kscope/AST/PrototypeNode.h"
+#include "kscope/AST/ASTNodes.h"
 
 #include "lexer.h"
 #include "bison_parser.hh"
@@ -39,11 +37,6 @@ ASTree::parse(std::istream &input_stream) {
 }
 
 void
-ASTree::set_root(FunctionNode *node) {
-    root = std::unique_ptr<ASTNode>(node);
-}
-
-void
-ASTree::set_root(PrototypeNode *node) {
-    root = std::unique_ptr<ASTNode>(node);
+ASTree::set_root(ASTNode *node) {
+  root = std::unique_ptr<ASTNode>(node);
 }

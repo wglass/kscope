@@ -5,8 +5,6 @@
 
 
 struct ASTNode;
-struct FunctionNode;
-struct PrototypeNode;
 
 
 class ASTree {
@@ -21,6 +19,5 @@ public:
 
   void parse(std::istream &input);
 
-  void set_root(FunctionNode *node);
-  void set_root(PrototypeNode *node);
+  void set_root(ASTNode *node);
 };
