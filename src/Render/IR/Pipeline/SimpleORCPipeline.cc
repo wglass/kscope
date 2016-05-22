@@ -31,9 +31,13 @@ SimpleORCPipeline::add_modules(ModuleSet &modules) {
       if (auto symbol = find_symbol(name)) {
         return llvm::RuntimeDyld::SymbolInfo(symbol.getAddress(),
                                              symbol.getFlags());
-      } else {
-        return llvm::RuntimeDyld::SymbolInfo(nullptr);
       }
+      if ( auto addr = llvm::RTDyldMemoryManager::getSymbolAddressInProcess(name) ) {
+        return llvm::RuntimeDyld::SymbolInfo(addr,
+                                             llvm::JITSymbolFlags::Exported);
+      }
+
+      return llvm::RuntimeDyld::SymbolInfo(nullptr);
     },
     [](const std::string &name) {
       return nullptr;

@@ -49,18 +49,18 @@ LazyORCPipeline::find_symbol(const std::string &name) {
 
 LazyORCPipeline::ModuleHandle
 LazyORCPipeline::add_modules(ModuleSet &modules) {
-  // We need a memory manager to allocate memory and resolve symbols for this
-  // new module. Create one that resolves symbols by looking back into the
-  // JIT.
   auto resolver = llvm::orc::createLambdaResolver(
     [&](const std::string &name) {
-      auto symbol = find_symbol(name);
-      if ( ! symbol ) {
-        symbol = search_functions(name);
+      if ( auto symbol = find_symbol(name) ) {
+        return llvm::RuntimeDyld::SymbolInfo(symbol.getAddress(),
+                                             symbol.getFlags());
+      }
+      if ( auto addr = llvm::RTDyldMemoryManager::getSymbolAddressInProcess(name) ) {
+        return llvm::RuntimeDyld::SymbolInfo(addr,
+                                             llvm::JITSymbolFlags::Exported);
       }
 
-      return llvm::RuntimeDyld::SymbolInfo(symbol.getAddress(),
-                                           symbol.getFlags());
+      return llvm::RuntimeDyld::SymbolInfo(nullptr);
     },
     [](const std::string &name) {
       return nullptr;
@@ -95,16 +95,8 @@ LazyORCPipeline::search_functions(const std::string &name) {
 void
 LazyORCPipeline::generate_stub(FunctionNode *node) {
   auto *proto = static_cast<llvm::Function*>(renderer->visit(node->proto));
-
-  // Step 2) Get a compile callback that can be used to compile the body of
-  //         the function. The resulting CallbackInfo type will let us set the
-  //         compile and update actions for the callback, and get a pointer to
-  //         the jit trampoline that we need to call to trigger those actions.
   auto callback_info = compile_callbacks.getCompileCallback();
 
-  // Step 3) Create a stub that will indirectly call the body of this
-  //         function once it is compiled. Initially, set the function
-  //         pointer for the indirection to point at the trampoline.
   auto body_ptr_name = (proto->getName() + "$address").str();
   auto *body_ptr = llvm::orc::createImplPointer(*proto->getType(),
                                                 *proto->getParent(),
@@ -114,22 +106,9 @@ LazyORCPipeline::generate_stub(FunctionNode *node) {
 
   llvm::orc::makeStub(*proto, *body_ptr);
 
-  // Step 4) Add the module containing the stub to the JIT.
   renderer->flush_modules();
 
   auto stub_handle = std::move(previous_flush);
-
-  // Step 5) Set the compile and update actions.
-  //
-  //   The compile action will IRGen the function and add it to the JIT, then
-  // request its address, which will trigger codegen. Since we don't need the
-  // AST after this, we pass ownership of the AST into the compile action:
-  // compile actions (and update actions) are deleted after they're run, so
-  // this will free the AST for us.
-  //
-  //   The update action will update body_ptr to point at the newly
-  // compiled function.
-
   callback_info.setCompileAction(
     [this, node, body_ptr_name, stub_handle]() {
       renderer->render_function(node);
