@@ -34,6 +34,8 @@ public:
   IRContext & get_render_context();
 
   llvm::orc::TargetAddress get_symbol(const std::string &name);
+
+  void add_prototype(PrototypeNode *node);
   PrototypeNode *get_prototype(const std::string &name);
 
   void flush_modules();

@@ -70,6 +70,15 @@ IRRenderer::get_symbol(const std::string &name) {
   return symbol.getAddress();
 }
 
+void
+IRRenderer::add_prototype(PrototypeNode *node) {
+  if ( proto_map->find(node->name) != proto_map->end() ) {
+    return;
+  }
+
+  proto_map->insert(std::make_pair(node->name, node));
+}
+
 PrototypeNode *
 IRRenderer::get_prototype(const std::string &name) {
   auto search = proto_map->find(name);

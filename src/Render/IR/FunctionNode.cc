@@ -12,6 +12,7 @@
 
 llvm::Value *
 IRRenderer::visit_node(FunctionNode *node) {
+  add_prototype(node->proto);
   pipeline->process_function_node(node);
   return nullptr;
 }

@@ -12,7 +12,7 @@
 
 llvm::Value *
 IRRenderer::visit_node(PrototypeNode *node) {
-  proto_map->insert(std::make_pair(node->name, node));
+  add_prototype(node);
 
   auto &context = get_render_context();
   auto &llvm_context = context.get_llvm_context();
