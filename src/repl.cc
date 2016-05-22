@@ -45,6 +45,7 @@ int main(int argc, char** argv) {
 
     tree->parse(iss);
     if ( ! tree->root ) {
+      fprintf(stderr, "kscope> ");
       continue;
     }
 
