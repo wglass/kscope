@@ -51,10 +51,7 @@ int main(int argc, char** argv) {
 
     renderer->visit(tree->root.get());
 
-    if ( tree->root->kind == ASTNodeKind::Prototype ) {
-      auto *proto_node = static_cast<PrototypeNode*>(tree->root.get());
-      fprintf(stderr, "Added new extern: %s\n", proto_node->name.c_str());
-    } else if ( tree->root->kind == ASTNodeKind::Function ) {
+    if ( tree->root->kind == ASTNodeKind::Function ) {
       auto *func_node = static_cast<FunctionNode*>(tree->root.get());
 
       if ( func_node->proto->is_anon ) {
