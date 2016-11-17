@@ -11,13 +11,14 @@
 #include "llvm/ExecutionEngine/SectionMemoryManager.h"
 #include "llvm/IR/Module.h"
 
+#include <memory>
 #include <string>
 
 
 SimpleORCPipeline::SimpleORCPipeline(IRRenderer *renderer)
   : ORCPipeline<SimpleORCPipeline, SimpleLayerSpec>(renderer,
-                                                    SimpleLayerSpec::TopLayer(object_layer,
-                                                                              llvm::orc::SimpleCompiler(*llvm::EngineBuilder().selectTarget()))) { }
+                                                    std::make_unique<SimpleLayerSpec::TopLayer>(object_layer,
+                                                                                                llvm::orc::SimpleCompiler(*llvm::EngineBuilder().selectTarget()))) { }
 
 void
 SimpleORCPipeline::process_function_node(FunctionNode *node) {
@@ -43,12 +44,12 @@ SimpleORCPipeline::add_modules(ModuleSet &modules) {
       return nullptr;
     }
   );
-  return top_layer.addModuleSet(std::move(modules),
-                                std::make_unique<llvm::SectionMemoryManager>(),
-                                std::move(resolver));
+  return top_layer->addModuleSet(std::move(modules),
+                                 std::make_unique<llvm::SectionMemoryManager>(),
+                                 std::move(resolver));
 }
 
 void
 SimpleORCPipeline::remove_modules(SimpleORCPipeline::ModuleHandle handle) {
-  top_layer.removeModuleSet(handle);
+  top_layer->removeModuleSet(handle);
 }

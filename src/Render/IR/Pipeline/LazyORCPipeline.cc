@@ -27,7 +27,7 @@ static void handle_address_error() {
 
 LazyORCPipeline::LazyORCPipeline(IRRenderer *renderer)
   : ORCPipeline<LazyORCPipeline, LazyLayerSpec>(renderer,
-                                                LazyLayerSpec::TopLayer(compile_layer)),
+                                                std::make_unique<LazyLayerSpec::TopLayer>(compile_layer)),
   compile_layer(object_layer, llvm::orc::SimpleCompiler(renderer->get_target_machine())),
   compile_callbacks((reinterpret_cast<uintptr_t>(handle_address_error))) {}
 
@@ -38,7 +38,7 @@ LazyORCPipeline::process_function_node(FunctionNode *node) {
 
 llvm::orc::JITSymbol
 LazyORCPipeline::find_symbol(const std::string &name) {
-  auto symbol = top_layer.findSymbol(name, false);
+  auto symbol = top_layer->findSymbol(name, false);
 
   if ( ! symbol ) {
     symbol = search_functions(name);
@@ -67,14 +67,14 @@ LazyORCPipeline::add_modules(ModuleSet &modules) {
     }
   );
 
-  return top_layer.addModuleSet(std::move(modules),
-                                std::make_unique<llvm::SectionMemoryManager>(),
-                                std::move(resolver));
+  return top_layer->addModuleSet(std::move(modules),
+                                 std::make_unique<llvm::SectionMemoryManager>(),
+                                 std::move(resolver));
 }
 
 void
 LazyORCPipeline::remove_modules(LazyORCPipeline::ModuleHandle handle) {
-  top_layer.removeModuleSet(handle);
+  top_layer->removeModuleSet(handle);
 }
 
 llvm::orc::JITSymbol

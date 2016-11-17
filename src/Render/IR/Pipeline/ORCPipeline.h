@@ -10,6 +10,7 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include <functional>
+#include <memory>
 #include <string>
 #include <set>
 
@@ -22,9 +23,10 @@ template<class Subclass, class LayerSpec>
 class ORCPipeline : public Pipeline {
 public:
   typedef typename LayerSpec::TopLayer::ModuleSetHandleT ModuleHandle;
+  typedef typename LayerSpec::TopLayer TopLayer;
 
   ORCPipeline<LayerSpec>(IRRenderer *renderer,
-                         typename LayerSpec::TopLayer top_layer)
+                         std::unique_ptr<TopLayer> top_layer)
   : Pipeline(renderer),
     top_layer(std::move(top_layer)) {}
 
@@ -48,7 +50,9 @@ public:
     return find_symbol(mangle(name));
   }
   llvm::orc::JITSymbol find_symbol(const std::string &name) {
-    return top_layer.findSymbol(name, false);
+    fprintf(stderr, "Looking up symbol in ORCPipeline: %s\n", name.c_str());
+    fprintf(stderr, "location of top_layer: %p\n", &top_layer);
+    return top_layer->findSymbol(name, false);
   }
   llvm::orc::JITSymbol find_unmangled_symbol_in(ModuleHandle handle,
                                                 const std::string &name) {
@@ -56,11 +60,10 @@ public:
   }
   llvm::orc::JITSymbol find_symbol_in(ModuleHandle handle,
                                       const std::string &name) {
-    return top_layer.findSymbolIn(handle, name, false);
+    return top_layer->findSymbolIn(handle, name, false);
   }
-
-  typename LayerSpec::TopLayer top_layer;
 
 protected:
   ModuleHandle previous_flush;
+  std::unique_ptr<TopLayer> top_layer;
 };
