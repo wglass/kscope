@@ -7,6 +7,10 @@
 #undef  YY_DECL
 #define YY_DECL int Lexer::yylex()
 
+#ifndef FLEX_STD
+#define FLEX_STD std::
+#endif
+
 #include "bison_parser.hh"
 
 
