@@ -4,7 +4,7 @@
 
 #include "Render/IR/IRRenderer.h"
 
-#include "llvm/ExecutionEngine/Orc/JITSymbol.h"
+#include "llvm/ExecutionEngine/JITSymbol.h"
 #include "llvm/IR/Mangler.h"
 #include "llvm/IR/Module.h"
 #include "llvm/Support/raw_ostream.h"
@@ -46,19 +46,19 @@ public:
     return mangled_name;
   }
 
-  llvm::orc::JITSymbol find_unmangled_symbol(const std::string &name) {
+  llvm::JITSymbol find_unmangled_symbol(const std::string &name) {
     return find_symbol(mangle(name));
   }
-  llvm::orc::JITSymbol find_symbol(const std::string &name) {
+  llvm::JITSymbol find_symbol(const std::string &name) {
     fprintf(stderr, "Looking up symbol in ORCPipeline: %s\n", name.c_str());
     fprintf(stderr, "location of top_layer: %p\n", &top_layer);
     return top_layer->findSymbol(name, false);
   }
-  llvm::orc::JITSymbol find_unmangled_symbol_in(ModuleHandle handle,
+  llvm::JITSymbol find_unmangled_symbol_in(ModuleHandle handle,
                                                 const std::string &name) {
     return find_symbol_in(handle, mangle(name));
   }
-  llvm::orc::JITSymbol find_symbol_in(ModuleHandle handle,
+  llvm::JITSymbol find_symbol_in(ModuleHandle handle,
                                       const std::string &name) {
     return top_layer->findSymbolIn(handle, name, false);
   }

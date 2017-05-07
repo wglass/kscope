@@ -7,7 +7,7 @@
 #include "kscope/AST/ASTree.h"
 
 #include "llvm/ExecutionEngine/ExecutionEngine.h"
-#include "llvm/ExecutionEngine/Orc/JITSymbol.h"
+#include "llvm/ExecutionEngine/JITSymbol.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Value.h"
 
@@ -62,7 +62,7 @@ IRRenderer::get_data_layout() {
   return data_layout;
 }
 
-llvm::orc::TargetAddress
+llvm::JITTargetAddress
 IRRenderer::get_symbol(const std::string &name) {
   flush_modules();
 

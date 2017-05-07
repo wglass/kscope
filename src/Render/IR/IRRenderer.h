@@ -5,7 +5,7 @@
 
 #include "kscope/AST/ASTVisitor.h"
 
-#include "llvm/ExecutionEngine/Orc/JITSymbol.h"
+#include "llvm/ExecutionEngine/JITSymbol.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Value.h"
@@ -33,7 +33,7 @@ public:
   const llvm::DataLayout get_data_layout();
   IRContext & get_render_context();
 
-  llvm::orc::TargetAddress get_symbol(const std::string &name);
+  llvm::JITTargetAddress get_symbol(const std::string &name);
 
   void add_prototype(PrototypeNode *node);
   PrototypeNode *get_prototype(const std::string &name);

@@ -8,7 +8,7 @@
 #include "llvm/ExecutionEngine/Orc/OrcArchitectureSupport.h"
 #include "llvm/ExecutionEngine/Orc/IndirectionUtils.h"
 #include "llvm/ExecutionEngine/Orc/LambdaResolver.h"
-#include "llvm/ExecutionEngine/Orc/JITSymbol.h"
+#include "llvm/ExecutionEngine/JITSymbol.h"
 #include "llvm/ExecutionEngine/RuntimeDyld.h"
 #include "llvm/IR/Module.h"
 
@@ -34,7 +34,7 @@ public:
 
   void process_function_node(FunctionNode *node);
 
-  llvm::orc::JITSymbol find_symbol(const std::string &name);
+  llvm::JITSymbol find_symbol(const std::string &name);
 
   ModuleHandle add_modules(ModuleSet &modules);
   void remove_modules(ModuleHandle handle);
@@ -47,6 +47,6 @@ private:
 
   std::map<std::string, FunctionNode *> functions;
 
-  llvm::orc::JITSymbol search_functions(const std::string &name);
+  llvm::JITSymbol search_functions(const std::string &name);
   void generate_stub(FunctionNode *node);
 };
