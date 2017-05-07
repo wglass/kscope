@@ -28,7 +28,7 @@ IRContext::IRContext(const llvm::DataLayout data_layout)
   pass_manager->add(llvm::createPromoteMemoryToRegisterPass());
   pass_manager->add(llvm::createInstructionCombiningPass());
   pass_manager->add(llvm::createReassociatePass());
-  pass_manager->add(llvm::createGVNPass());
+  pass_manager->add(llvm::createNewGVNPass());
   pass_manager->add(llvm::createCFGSimplificationPass());
 
   pass_manager->doInitialization();
