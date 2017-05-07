@@ -36,7 +36,7 @@ LazyORCPipeline::process_function_node(FunctionNode *node) {
   functions[mangle(node->proto->name)] = node;
 }
 
-llvm::orc::JITSymbol
+llvm::JITSymbol
 LazyORCPipeline::find_symbol(const std::string &name) {
   auto symbol = top_layer->findSymbol(name, false);
 
@@ -77,7 +77,7 @@ LazyORCPipeline::remove_modules(LazyORCPipeline::ModuleHandle handle) {
   top_layer->removeModuleSet(handle);
 }
 
-llvm::orc::JITSymbol
+llvm::JITSymbol
 LazyORCPipeline::search_functions(const std::string &name) {
   auto search = functions.find(name);
   if ( search == functions.end() ) {
