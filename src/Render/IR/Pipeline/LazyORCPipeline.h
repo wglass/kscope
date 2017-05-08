@@ -5,7 +5,7 @@
 #include "llvm/ExecutionEngine/Orc/IRCompileLayer.h"
 #include "llvm/ExecutionEngine/Orc/LazyEmittingLayer.h"
 #include "llvm/ExecutionEngine/Orc/ObjectLinkingLayer.h"
-#include "llvm/ExecutionEngine/Orc/OrcArchitectureSupport.h"
+#include "llvm/ExecutionEngine/Orc/OrcABISupport.h"
 #include "llvm/ExecutionEngine/Orc/IndirectionUtils.h"
 #include "llvm/ExecutionEngine/Orc/LambdaResolver.h"
 #include "llvm/ExecutionEngine/JITSymbol.h"
@@ -43,7 +43,7 @@ private:
   LazyLayerSpec::ObjectLayer object_layer;
   LazyLayerSpec::CompileLayer compile_layer;
 
-  llvm::orc::LocalJITCompileCallbackManager<llvm::orc::OrcX86_64> compile_callbacks;
+  llvm::orc::LocalJITCompileCallbackManager<llvm::orc::OrcX86_64_SysV> compile_callbacks;
 
   std::map<std::string, FunctionNode *> functions;
 
