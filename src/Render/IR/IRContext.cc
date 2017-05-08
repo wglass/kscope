@@ -17,8 +17,11 @@ generate_module_name() {
   return name;
 }
 
+static llvm::LLVMContext GlobalLLVMContext;
+
+
 IRContext::IRContext(const llvm::DataLayout data_layout)
-  : llvm_context(llvm::getGlobalContext()),
+  : llvm_context(GlobalLLVMContext),
     module(std::make_unique<llvm::Module>(generate_module_name(), llvm_context)),
     builder(std::make_unique<llvm::IRBuilder<>>(llvm_context)),
     pass_manager(std::make_unique<llvm::legacy::FunctionPassManager>(module.get())) {
