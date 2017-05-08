@@ -4,6 +4,7 @@
 
 #include "kscope/AST/FunctionNode.h"
 
+#include "llvm/ExecutionEngine/JITSymbol.h"
 #include "llvm/ExecutionEngine/Orc/CompileUtils.h"
 #include "llvm/ExecutionEngine/Orc/IRCompileLayer.h"
 #include "llvm/ExecutionEngine/Orc/IndirectionUtils.h"
@@ -52,18 +53,17 @@ LazyORCPipeline::add_modules(ModuleSet &modules) {
   auto resolver = llvm::orc::createLambdaResolver(
     [&](const std::string &name) {
       if ( auto symbol = find_symbol(name) ) {
-        return llvm::RuntimeDyld::SymbolInfo(symbol.getAddress(),
-                                             symbol.getFlags());
+        return symbol;
+      } else {
+        return llvm::JITSymbol(nullptr);
       }
-      if ( auto addr = llvm::RTDyldMemoryManager::getSymbolAddressInProcess(name) ) {
-        return llvm::RuntimeDyld::SymbolInfo(addr,
-                                             llvm::JITSymbolFlags::Exported);
-      }
-
-      return llvm::RuntimeDyld::SymbolInfo(nullptr);
     },
     [](const std::string &name) {
-      return nullptr;
+      if ( auto addr = llvm::RTDyldMemoryManager::getSymbolAddressInProcess(name) ) {
+        return llvm::JITSymbol(addr, llvm::JITSymbolFlags::Exported);
+      } else {
+        return llvm::JITSymbol(nullptr);
+      }
     }
   );
 

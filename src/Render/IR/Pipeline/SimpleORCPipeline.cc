@@ -8,6 +8,7 @@
 #include "llvm/ExecutionEngine/Orc/CompileUtils.h"
 #include "llvm/ExecutionEngine/Orc/LambdaResolver.h"
 #include "llvm/ExecutionEngine/RuntimeDyld.h"
+#include "llvm/ExecutionEngine/JITSymbol.h"
 #include "llvm/ExecutionEngine/SectionMemoryManager.h"
 #include "llvm/IR/Module.h"
 
@@ -30,18 +31,17 @@ SimpleORCPipeline::add_modules(ModuleSet &modules) {
   auto resolver = llvm::orc::createLambdaResolver(
     [&](const std::string &name) {
       if (auto symbol = find_symbol(name)) {
-        return llvm::RuntimeDyld::SymbolInfo(symbol.getAddress(),
-                                             symbol.getFlags());
+        return symbol;
+      } else {
+        return llvm::JITSymbol(nullptr);
       }
-      if ( auto addr = llvm::RTDyldMemoryManager::getSymbolAddressInProcess(name) ) {
-        return llvm::RuntimeDyld::SymbolInfo(addr,
-                                             llvm::JITSymbolFlags::Exported);
-      }
-
-      return llvm::RuntimeDyld::SymbolInfo(nullptr);
     },
     [](const std::string &name) {
-      return nullptr;
+      if ( auto addr = llvm::RTDyldMemoryManager::getSymbolAddressInProcess(name) ) {
+        return llvm::JITSymbol(addr, llvm::JITSymbolFlags::Exported);
+      } else {
+        return llvm::JITSymbol(nullptr);
+      }
     }
   );
   return top_layer->addModuleSet(std::move(modules),
