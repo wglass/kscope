@@ -34,8 +34,6 @@ public:
 
   void process_function_node(FunctionNode *node);
 
-  llvm::JITSymbol find_symbol(const std::string &name);
-
   ModuleHandle add_modules(ModuleSet &modules);
   void remove_modules(ModuleHandle handle);
 
@@ -43,10 +41,11 @@ private:
   LazyLayerSpec::ObjectLayer object_layer;
   LazyLayerSpec::CompileLayer compile_layer;
 
-  llvm::orc::LocalJITCompileCallbackManager<llvm::orc::OrcX86_64_SysV> compile_callbacks;
+  std::unique_ptr<llvm::TargetMachine> target_machine;
+  const llvm::DataLayout data_layout;
+
+  std::unique_ptr<llvm::orc::JITCompileCallbackManager> callback_manager;
+  std::unique_ptr<llvm::orc::IndirectStubsManager> stub_manager;
 
   std::map<std::string, FunctionNode *> functions;
-
-  llvm::JITSymbol search_functions(const std::string &name);
-  void generate_stub(FunctionNode *node);
 };

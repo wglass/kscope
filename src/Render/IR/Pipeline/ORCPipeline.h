@@ -50,8 +50,6 @@ public:
     return find_symbol(mangle(name));
   }
   llvm::JITSymbol find_symbol(const std::string &name) {
-    fprintf(stderr, "Looking up symbol in ORCPipeline: %s\n", name.c_str());
-    fprintf(stderr, "location of top_layer: %p\n", &top_layer);
     return top_layer->findSymbol(name, false);
   }
   llvm::JITSymbol find_unmangled_symbol_in(ModuleHandle handle,
