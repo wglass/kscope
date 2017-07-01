@@ -22,7 +22,6 @@ llvm::Function *
 IRRenderer::render_function(FunctionNode *node) {
   auto &context = get_render_context();
   auto &builder = context.get_builder();
-  auto &pass_manager = context.get_pass_manager();
 
   context.clear_all_named_values();
 
@@ -45,8 +44,6 @@ IRRenderer::render_function(FunctionNode *node) {
 
   builder.CreateRet(retval);
   llvm::verifyFunction(*func);
-
-  pass_manager.run(*func);
 
   fprintf(stderr, "Generated function definition:\n");
   func->dump();
