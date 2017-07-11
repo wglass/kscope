@@ -4,6 +4,7 @@
 #include "llvm/IR/Value.h"
 
 #include <string>
+#include <vector>
 
 
 class IRRenderer;
